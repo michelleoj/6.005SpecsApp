@@ -1,0 +1,33 @@
+.container {
+    width: 900px;
+    margin: auto auto;
+    margin-bottom: 50px;
+    
+}
+
+.head {
+    text-align: center;
+}
+
+.specs div {
+    width: 290px;
+    display: inline-block;
+}
+
+input {
+    display: inline-block;
+}
+
+#result {
+    background: #eee;
+    padding: 10px;
+    height: 40px;
+    overflow: auto;
+    
+}
+
+/*.imple {
+    position: relative;
+    width: 600px;
+    margin: auto auto;
+}*/

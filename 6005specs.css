@@ -1,0 +1,69 @@
+.specs {
+    width: 802px;
+    margin: auto auto;
+}
+
+.specs .nav-tabs {
+    margin-bottom: 0;
+}
+
+.specs .tab-pane {
+    border: 1px solid gray;
+    height: 600px;
+    width: 800px;
+}
+
+.specs .short {
+    height: 148;
+}
+
+.specs .tall {
+    height: 448;
+}
+
+.specs .narrow {
+    width: 348;
+}
+
+.specs .wide {
+    width: 448;
+}
+
+.specs .tab-pane div {
+    float: left;
+    border: 1px solid lightgray;
+}
+
+.specs .checkDisplay {
+    text-align: center;
+}
+
+.specs .checkDisplay .btn {
+    width: 448;
+    height: 46;
+    padding: 0;
+    border-radius: 0;
+}
+
+.specs .checkDisplay .alert {
+    width: 448;
+    height: 100;
+    padding: 0;
+}
+
+.specs .specsDisplay {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.specs .impleDisplay {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.specs pre {
+    border-radius: 0;
+    width: 326;
+    padding: 10px;
+    margin: 0;
+}

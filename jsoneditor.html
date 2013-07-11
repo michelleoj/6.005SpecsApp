@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>6.005 Specs Exercise</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+        <script src="http://web.mit.edu/lu16j/www/boots/bootstrap/js/bootstrap.min.js"></script>
+        <script src="jsoneditor.js"></script>
+        <link href="http://web.mit.edu/lu16j/www/boots/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        <link href="http://web.mit.edu/lu16j/www/boots/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">
+        <link href="jsoneditor.css" rel="stylesheet" type="text/css">
+    </head>
+    <body>
+        <div class="container"> 
+            <div class="head">
+                <h1>JSON Editor</h1>
+                <p>Enter in your specs and the implementation!</p>
+            </div>
+            <br>
+            <h3>
+                Specs:
+            </h3>
+            <p>Enter the spec in the text area. Add more specs if necessary.</p>
+            <div class="specs">
+                <div class="spec1">
+                    <span>
+                        <input class="name" style="width:78px" type="text" placeholder="Spec name...">
+                        <input class="intersects" style="width:78px" type="text" placeholder="Intersections">
+                        <input class="contains" style="width:78px" type="text" placeholder="Contains"><br>
+                    </span>
+                    <textarea class="input-xlarge" rows="4" placeholder="Enter spec..."></textarea><br><br>
+                </div>
+            </div>
+            <button class="add btn btn-info" class="btn btn-primary">Add Spec</button>
+            <button class="dec btn btn-info" class="btn btn-primary">Remove Spec</button>
+            
+            <h3>
+                Implementation:
+            </h3>
+            <p>Enter the implentation in the text area.</p>
+            <div class="imple">
+                <div class="imple1">
+                    <input class="name span6" type="text" placeholder="Implementation name..."><br>
+                    <textarea class="span6" style="height: 200px" placeholder="Enter implementation"></textarea>
+                </div>
+            </div>
+            <div class="row-fluid">
+                <button class="addi btn btn-info" class="btn btn-primary">Add Implementation</button>
+                <button class="deci btn btn-info" class="btn btn-primary">Remove Implementation</button><br><br>
+                <button type="submit" class="btn btn-primary">Submit</button>
+                
+                
+            </div>
+            <br><br>
+            <p>
+                <h3>JSON code</h3>
+                Insert into the web app javascript file. 
+            </p>
+            <pre id="result"></pre>
+        </div>
+    </body>
+</html>
