@@ -376,14 +376,14 @@ var specsExercise = (function () {
             if(correct) {
                 correctDisplay.show();
                 wrongDisplay.hide();
-                $('#showQuestion'+questionNumber).css({'background-color':'lightgreen'});
+                $('#showQuestion'+questionNumber).css({'background-color':'#dff0d8'});
             }
             else {
                 if(displayHints)
                     wrongDisplay.html(hint);
                 wrongDisplay.show();
                 correctDisplay.hide();
-                $('#showQuestion'+questionNumber).css('background-color', 'pink');
+                $('#showQuestion'+questionNumber).css('background-color', '#f2dede');
             }
         }
         
