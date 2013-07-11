@@ -237,10 +237,9 @@ var specsExercise = (function () {
                 }
                 correct = false;
                 if(hint === undefined)
-                    hint = 'your implementation is incorrectly placed';
-                else
-                    hint += ' is an incorrect relationship';
+                    hint = 'there is an extra or missing relationship';
             }
+            hint = 'Incorrect Relationship: '+hint;
             handler.trigger('checked', [questionNumber, correct, hint]);
         }
         
@@ -370,7 +369,7 @@ var specsExercise = (function () {
             if(correct) {
                 correctDisplay.show();
                 wrongDisplay.hide();
-                $('#showQuestion'+questionNumber).css({'background-color':'lightgreen','opacity':'0.5'});
+                $('#showQuestion'+questionNumber).css({'background-color':'lightgreen'});
             }
             else {
                 if(displayHints)
@@ -515,7 +514,7 @@ var specsExercise = (function () {
         //displays first test question on page load
         for(j in testJSON) {
             var qNum = parseInt(j)+1;
-            var newTab = $('<li><a id="showQuestion'+j+'" data-toggle="tab" href="#question'+j+'tab">Question '+qNum+'</a></li>');
+            var newTab = $('<li><a id="showQuestion'+j+'" data-toggle="tab" href="#question'+j+'tab"><strong>Question '+qNum+'</strong></a></li>');
             navTabs.append(newTab);
             var newDiv = $('<div class="tab-pane" id="question'+j+'tab"></div>');
             if(j === '0') {
