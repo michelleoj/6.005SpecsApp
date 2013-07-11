@@ -198,6 +198,7 @@ var specsExercise = (function () {
             var numRels = 0;
             var hint;
             var correctRels = [];
+            var allRels = [];
             for(i in currentSpecs) {
                 alreadyChecked.push(i+i);
                 for(j in currentSpecs) {
@@ -213,6 +214,7 @@ var specsExercise = (function () {
                             else
                                 correctRels.push([newRel, newRelRev]);
                             numRels++;
+                            allRels.push(newRel);
                         }
                     }
                 }
@@ -227,12 +229,13 @@ var specsExercise = (function () {
                         else
                             correctRels.push([newRel, newRelRev]);
                         numRels++;
+                        allRels.push(newRel);
                     }
                 }
             }
             if(numRels !== currentRels.length) {
                 for(c in correctRels) {
-                    if(currentRels.indexOf(correctRels[c][0]) < 0 & currentRels.indexOf(correctRels[c][0]) < 0)
+                    if(currentRels.indexOf(correctRels[c][0]) < 0 & currentRels.indexOf(correctRels[c][1]) < 0)
                         hint = correctRels[c][0];
                 }
                 correct = false;
@@ -240,6 +243,7 @@ var specsExercise = (function () {
                     hint = 'there is an extra or missing relationship';
             }
             hint = 'Incorrect Relationship: '+hint;
+            console.log(allRels);
             handler.trigger('checked', [questionNumber, correct, hint]);
         }
         
@@ -349,11 +353,14 @@ var specsExercise = (function () {
         var impleDisplay = $('<div class="impleDisplay narrow short"></div>');
         var checkDisplay = $('<div class="checkDisplay wide short"></div>');
         
-        var checkButton = $('<button class="btn btn-primary">Check</button>');
+        var checkButton = $('<button class="btn">Check</button>');
         checkDisplay.append(checkButton);
         checkButton.on('click', function () {
-            controller.checkAnswer(questionNumber)
+            controller.checkAnswer(questionNumber);
         });
+        if(dynamicChecking)
+            checkButton.prop('disabled', true);
+        
         var correctDisplay = $('<div class="alert alert-success">Correct!</div>');
         var wrongDisplay = $('<div class="alert alert-error">Wrong.</div>');
         checkDisplay.append(correctDisplay, wrongDisplay);
@@ -500,12 +507,6 @@ var specsExercise = (function () {
         var dynamicChecking = div.attr('data-dynamic') === 'on';
         var model = Model();
         var controller = Controller(model);
-        
-        //test questions
-        var testJSON = [
-            {"specs":{"f1":{"contains":[],"intersects":["f2"],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(0,0,139,0.3)"},"f2":{"contains":[],"intersects":[],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(0,100,0,0.3)"},"f3":{"contains":["f4"],"intersects":[],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(169,169,169,0.3)"}},"imples":{"f4":{"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(255,255,0,1)"}}},
-            {"specs":{"f1":{"contains":["f7"],"intersects":["f2","f3"],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(255,0,255,0.3)"},"f2":{"contains":[],"intersects":[],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(255,255,0,0.3)"},"f3":{"contains":[],"intersects":[],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(0,139,139,0.3)"},"f4":{"contains":["f5","f6"],"intersects":[],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(128,0,0,0.3)"},"f5":{"contains":["f6"],"intersects":[],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(0,0,255,0.3)"}},"imples":{"f6":{"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(255,0,255,1)"},"f7":{"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(255,0,0,1)"}}}
-        ];
         
         var navTabs = $('<ul class="nav nav-tabs"></ul>');
         var tabContent = $('<div id="my-tab-content" class="tab-content"></div>');

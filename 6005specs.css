@@ -1,11 +1,15 @@
 .specs {
-    width: 922px;
+    width: 944px;
     margin: auto auto;
 }
 
 .specs .nav-tabs {
     margin-right: 2;
-    width: 118;
+    width: 138;
+    height: 600px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    direction: rtl;
 }
 
 .specs .tab-pane {
