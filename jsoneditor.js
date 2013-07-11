@@ -33,33 +33,36 @@ $(document).ready(function() {
         jsonThing['specs'] = {}
         $('.specs div').each(function () {
             var name = $(this).find('.name').val();
-            jsonThing['specs'][name] = {};
-            
-            if ($(this).find('.contains').val() !== "") {
-                jsonThing['specs'][name]['contains'] = $(this).find('.contains').val().split(/[\s,]+/);
+            if(name !== "") {
+                jsonThing['specs'][name] = {};
+                
+                if ($(this).find('.contains').val() !== "") {
+                    jsonThing['specs'][name]['contains'] = $(this).find('.contains').val().split(/[\s,]+/);
+                }
+                else {
+                    jsonThing['specs'][name]['contains'] = [];
+                }
+                
+                if ($(this).find('.intersects').val() !== "") {
+                    jsonThing['specs'][name]['intersects'] = $(this).find('.intersects').val().split(/[\s,]+/);
+                }
+                else {
+                    jsonThing['specs'][name]['intersects'] = [];
+                }
+                
+                jsonThing['specs'][name]['text'] = $(this).find('textarea').val();
+                jsonThing['specs'][name]['color'] = randomColor(0.3);
             }
-            else {
-                jsonThing['specs'][name]['contains'] = [];
-            }
-            
-            if ($(this).find('.intersects').val() !== "") {
-                jsonThing['specs'][name]['intersects'] = $(this).find('.intersects').val().split(/[\s,]+/);
-            }
-            else {
-                jsonThing['specs'][name]['intersects'] = [];
-            }
-            
-            jsonThing['specs'][name]['text'] = $(this).find('textarea').val();
-            jsonThing['specs'][name]['color'] = randomColor(0.3);
-            
         });
         
         jsonThing['imples'] = {};
         $('.imple div').each(function() {
             var name = $(this).find('.name').val();
-            jsonThing['imples'][name] = {};
-            jsonThing['imples'][name]['text'] = $(this).find('textarea').val();
-            jsonThing['imples'][name]['color'] = randomColor(1);
+            if(name !== "") {
+                jsonThing['imples'][name] = {};
+                jsonThing['imples'][name]['text'] = $(this).find('textarea').val();
+                jsonThing['imples'][name]['color'] = randomColor(1);
+            }
         });
         
         $("#result").text(JSON.stringify(jsonThing));
