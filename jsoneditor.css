@@ -21,7 +21,7 @@ input {
 #result {
     background: #eee;
     padding: 10px;
-    height: 40px;
+    height: 100px;
     overflow: auto;
     
 }
