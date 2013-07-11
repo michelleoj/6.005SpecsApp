@@ -12,7 +12,6 @@ $(document).ready(function() {
             "olive":"rgba(128,128,0,1)",
             "aqua":"rgba(0,255,255,1)",
             "darkcyan":"rgba(0,139,139,1)",
-            "blue":"rgba(0,0,255,1)",
             "darkblue":"rgba(0,0,139,1)",
             "purple":"rgba(128,0,128,1)",
             "maroon":"rgba(128,0,0,1)",
@@ -51,7 +50,7 @@ $(document).ready(function() {
             }
             
             jsonThing['specs'][name]['text'] = $(this).find('textarea').val();
-            jsonThing['specs'][name]['color'] = randomColor(0.5);
+            jsonThing['specs'][name]['color'] = randomColor(0.3);
             
         });
         

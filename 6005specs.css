@@ -1,10 +1,11 @@
 .specs {
-    width: 802px;
+    width: 902px;
     margin: auto auto;
 }
 
 .specs .nav-tabs {
-    margin-bottom: 0;
+    margin-right: 2;
+    width: 98;
 }
 
 .specs .tab-pane {
@@ -54,11 +55,15 @@
 .specs .specsDisplay {
     overflow-y: auto;
     overflow-x: hidden;
+    height: 55%
 }
 
 .specs .impleDisplay {
     overflow-y: auto;
     overflow-x: hidden;
+    height: 44%;
+    position: relative;
+    top: -19%;
 }
 
 .specs pre {
