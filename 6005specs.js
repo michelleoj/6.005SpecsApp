@@ -370,11 +370,13 @@ var specsExercise = (function () {
             if(correct) {
                 correctDisplay.show();
                 wrongDisplay.hide();
+                $('#showQuestion'+questionNumber).css({'background-color':'lightgreen','opacity':'0.5'});
             }
             else {
                 wrongDisplay.html(hint);
                 wrongDisplay.show();
                 correctDisplay.hide();
+                $('#showQuestion'+questionNumber).css('background-color', 'pink');
             }
         }
         
@@ -400,6 +402,7 @@ var specsExercise = (function () {
         function loadSpecs(data) {
             var canvas = new fabric.Canvas('c'+questionNumber);
             
+            //repositions the canvas after bringing it into view
             canvas.on('after:render', function() {
                 canvas.calcOffset();
             });
@@ -415,6 +418,7 @@ var specsExercise = (function () {
             var specs = data[0];
             var imples = data[1];
             
+            //create canvas objects
             for(s in specs) {
                 var text1 = new fabric.Text(specs[s].getName(), {fontSize: 20, top:-10});
                 var circleWidth = Math.round(Math.max(50,text1.width));
@@ -436,23 +440,37 @@ var specsExercise = (function () {
                 
                 var newPre = $('<pre class="prettyprint impleSpan" data-id="'+imples[i].getName()+'">'+imples[i].getSpec()+'</pre>');
                 impleDisplay.append(newPre);
-                newPre.css('background-color', impleCircle.fill.replace(',1)',',0.5)'));
+                newPre.css('background-color', impleCircle.fill.replace(',1)',',0.3)'));
             }
             
+            //disable right click on canvas
+            vennDiagrams[0].oncontextmenu = function () {
+                return false;
+            };
+            
             canvas.forEachObject(function (obj) {
+                //brings selected object forward, but implementation dots always on top
                 obj.on('selected', function () {
                     canvas.bringToFront(obj);
+                    canvas.forEachObject(function (obj2) {
+                        if(obj2.name !== undefined)
+                            canvas.bringToFront(obj2);
+                    });
                 });
+                
+                //only uniform scaling allowed, no rotation
                 obj.lockUniScaling = true;
                 obj.selectionLineWidth = 5;
                 obj.hasRotatingPoint = false;
                 
+                //update the object's radius and position
                 var point = obj.getCenterPoint();
                 if(obj.name === undefined)
                     controller.updateSpec(questionNumber, obj.item(0).name, obj.getBoundingRectWidth()/2, point.x, point.y);
                 else
                     controller.updateImple(questionNumber, obj.name, point.x, point.y);
                 
+                //dynamically update position and radius, animate bounce if dragged out of bounds
                 obj.on('modified', function () {
                     var point = obj.getCenterPoint();
                     if(point.x > 448 | point.x < 0 | point.y > 448 | point.y < 0) {
@@ -465,6 +483,7 @@ var specsExercise = (function () {
                         controller.updateSpec(questionNumber, obj.item(0).name, obj.getBoundingRectWidth()/2, point.x, point.y);
                     else
                         controller.updateImple(questionNumber, obj.name, point.x, point.y);
+                    controller.checkAnswer(questionNumber);
                 });
             });
         }
@@ -481,8 +500,8 @@ var specsExercise = (function () {
         
         //test questions
         var testJSON = [
-            {"specs":{"f1":{"contains":[],"intersects":["f2"],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(0,0,139,0.5)"},"f2":{"contains":[],"intersects":[],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(0,100,0,0.5)"},"f3":{"contains":["f4"],"intersects":[],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(169,169,169,0.5)"}},"imples":{"f4":{"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(255,255,0,1)"}}},
-            {"specs":{"f1":{"contains":["f7"],"intersects":["f2","f3"],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(0,0,139,0.5)"},"f2":{"contains":[],"intersects":[],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(255,255,0,0.5)"},"f3":{"contains":[],"intersects":[],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(0,139,139,0.5)"},"f4":{"contains":["f5","f6"],"intersects":[],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(128,0,0,0.5)"},"f5":{"contains":["f6"],"intersects":[],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(0,0,255,0.5)"}},"imples":{"f6":{"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(255,0,255,1)"},"f7":{"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(255,0,0,1)"}}}
+            {"specs":{"f1":{"contains":[],"intersects":["f2"],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(0,0,139,0.3)"},"f2":{"contains":[],"intersects":[],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(0,100,0,0.3)"},"f3":{"contains":["f4"],"intersects":[],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(169,169,169,0.3)"}},"imples":{"f4":{"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(255,255,0,1)"}}},
+            {"specs":{"f1":{"contains":["f7"],"intersects":["f2","f3"],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(255,0,255,0.3)"},"f2":{"contains":[],"intersects":[],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(255,255,0,0.3)"},"f3":{"contains":[],"intersects":[],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(0,139,139,0.3)"},"f4":{"contains":["f5","f6"],"intersects":[],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(128,0,0,0.3)"},"f5":{"contains":["f6"],"intersects":[],"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(0,0,255,0.3)"}},"imples":{"f6":{"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(255,0,255,1)"},"f7":{"text":"boolean f1(int a, int b) {...}\n@requires a, b are integers\n@effects true if equal, false otherwise","color":"rgba(255,0,0,1)"}}}
         ];
         
         var navTabs = $('<ul class="nav nav-tabs"></ul>');
@@ -503,6 +522,7 @@ var specsExercise = (function () {
             var newView = View(j, newDiv, model, controller);
             views.push(newView);
         }
+        div.addClass('tabbable tabs-left');
         div.append(navTabs, tabContent);
         controller.loadQuestions(testJSON);
     }
