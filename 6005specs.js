@@ -342,7 +342,7 @@ var specsExercise = (function () {
     //*                ----- VIEW -----
     //*
     //*************************************************
-    function View(questionNumber, div, model, controller) {
+    function View(questionNumber, div, model, controller, displayHints, dynamicChecking) {
         
         //initializing the html objects
         var vennDiagrams = $('<div class="vennDiagrams wide tall"><canvas id="c'+questionNumber+'"height="448" width="448"></canvas></div>');
@@ -373,7 +373,8 @@ var specsExercise = (function () {
                 $('#showQuestion'+questionNumber).css({'background-color':'lightgreen','opacity':'0.5'});
             }
             else {
-                wrongDisplay.html(hint);
+                if(displayHints)
+                    wrongDisplay.html(hint);
                 wrongDisplay.show();
                 correctDisplay.hide();
                 $('#showQuestion'+questionNumber).css('background-color', 'pink');
@@ -483,7 +484,8 @@ var specsExercise = (function () {
                         controller.updateSpec(questionNumber, obj.item(0).name, obj.getBoundingRectWidth()/2, point.x, point.y);
                     else
                         controller.updateImple(questionNumber, obj.name, point.x, point.y);
-                    controller.checkAnswer(questionNumber);
+                    if(dynamicChecking)
+                        controller.checkAnswer(questionNumber);
                 });
             });
         }
@@ -495,6 +497,8 @@ var specsExercise = (function () {
     @returns a public fuction "setup" to be invoked by the user
     */
     function setup(div) {
+        var displayHints = div.attr('data-hint') === 'on';
+        var dynamicChecking = div.attr('data-dynamic') === 'on';
         var model = Model();
         var controller = Controller(model);
         
@@ -519,7 +523,7 @@ var specsExercise = (function () {
                 newDiv.addClass('active');
             }
             tabContent.append(newDiv);
-            var newView = View(j, newDiv, model, controller);
+            var newView = View(j, newDiv, model, controller, displayHints, dynamicChecking);
             views.push(newView);
         }
         div.addClass('tabbable tabs-left');
