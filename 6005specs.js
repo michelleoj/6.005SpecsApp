@@ -469,6 +469,7 @@ var specsExercise = (function () {
             });
             
             canvas.forEachObject(function (obj) {
+                obj.set({perPixelTargetFind: true});
                 
                 obj.on('selected', function() {
                     var thing;
@@ -494,10 +495,12 @@ var specsExercise = (function () {
                 
                 //update the object's radius and position
                 var point = obj.getCenterPoint();
-                if(obj.item(1).name === undefined)
+                if(obj.item(1).name === undefined) {
                     controller.updateSpec(questionNumber, obj.item(0).name, obj.getBoundingRectWidth()/2, point.x, point.y);
-                else
+                }
+                else {
                     controller.updateImple(questionNumber, obj.item(1).name, point.x, point.y);
+                }
                 
                 //dynamically update position and radius, animate bounce if dragged out of bounds
                 obj.on('modified', function () {
