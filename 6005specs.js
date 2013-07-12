@@ -455,15 +455,10 @@ var specsExercise = (function () {
                 return false;
             };
             
+            //brings selected object forward
+            canvas.controlsAboveOverlay = true;
+            
             canvas.forEachObject(function (obj) {
-                //brings selected object forward, but implementation dots always on top
-                obj.on('selected', function () {
-                    canvas.bringToFront(obj);
-                    canvas.forEachObject(function (obj2) {
-                        if(obj2.name !== undefined)
-                            canvas.bringToFront(obj2);
-                    });
-                });
                 
                 //only uniform scaling allowed, no rotation
                 obj.lockUniScaling = true;
@@ -492,7 +487,32 @@ var specsExercise = (function () {
                         controller.updateImple(questionNumber, obj.name, point.x, point.y);
                     if(dynamicChecking)
                         controller.checkAnswer(questionNumber);
+                    
+                    sortObjects();
                 });
+                
+                //sort the objects' z-indices based on radius - larger in back, smaller in front
+                function sortObjects() {
+                    var objectsSortedRadius = [];
+                    var objectsUnsorted = canvas.getObjects();
+                    for(o in objectsUnsorted) {
+                        if(objectsSortedRadius.length === 0) {
+                            objectsSortedRadius.push(objectsUnsorted[o]);
+                        }
+                        else {
+                            var i = objectsSortedRadius.length-1;
+                            while(objectsSortedRadius[i].getBoundingRectWidth() > objectsUnsorted[o].getBoundingRectWidth()
+                                  & i > 0)
+                                i--;
+                            if(objectsSortedRadius[i].getBoundingRectWidth() > objectsUnsorted[o].getBoundingRectWidth())
+                                objectsSortedRadius.splice(i,0,objectsUnsorted[o]);
+                            else
+                                objectsSortedRadius.splice(i+1,0,objectsUnsorted[o]);
+                        }
+                    }
+                    for(o in objectsSortedRadius)
+                        objectsSortedRadius[o].sendToBack();
+                }
             });
         }
     }
