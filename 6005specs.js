@@ -275,31 +275,35 @@ var specsExercise = (function () {
         @bigJSON the JSON string 
         */
         function loadQuestions(bigJSON) {
-            for(j in bigJSON) {
-                var jsonThing = bigJSON[j];
-                var specs = [], imples = [], relationships = [];
-                for(i in jsonThing['imples']) {
-                    var currentImple = jsonThing['imples'][i];
-                    imples.push(new Imple(i, currentImple['text'], currentImple['color']));
-                }
-                for(s in jsonThing['specs']) {
-                    var currentSpec = jsonThing['specs'][s];
-                    specs.push(new Spec(s, currentSpec['text'], currentSpec['color']));
-                    for(o in currentSpec['contains']) {
-                        var relString = s+' contains '+currentSpec['contains'][o];
-                        if(relationships.indexOf(relString) < 0)
-                            relationships.push(relString);
-                    }
-                    for(o in currentSpec['intersects']) {
-                        var relString = s+' intersects '+currentSpec['intersects'][o];
-                        var relStringRev = currentSpec['intersects'][o]+' intersects '+s;
-                        if(relationships.indexOf(relString) < 0 & relationships.indexOf(relStringRev) < 0)
-                            relationships.push(relString);
-                    }
-                }
-                //tells model to fire the 'loaded' message
-                model.loadQuestion(specs, imples, relationships);
-            }
+//            for(j in bigJSON) {
+//                var jsonThing = bigJSON[j];
+//                var specs = [], imples = [], relationships = [];
+//                for(i in jsonThing['imples']) {
+//                    var currentImple = jsonThing['imples'][i];
+//                    imples.push(new Imple(i, currentImple['text'], currentImple['color']));
+//                }
+//                for(s in jsonThing['specs']) {
+//                    var currentSpec = jsonThing['specs'][s];
+//                    specs.push(new Spec(s, currentSpec['text'], currentSpec['color']));
+//                    for(o in currentSpec['contains']) {
+//                        var relString = s+' contains '+currentSpec['contains'][o];
+//                        if(relationships.indexOf(relString) < 0)
+//                            relationships.push(relString);
+//                    }
+//                    for(o in currentSpec['intersects']) {
+//                        var relString = s+' intersects '+currentSpec['intersects'][o];
+//                        var relStringRev = currentSpec['intersects'][o]+' intersects '+s;
+//                        if(relationships.indexOf(relString) < 0 & relationships.indexOf(relStringRev) < 0)
+//                            relationships.push(relString);
+//                    }
+//                }
+//                //tells model to fire the 'loaded' message
+//                model.loadQuestion(specs, imples, relationships);
+//            }
+            $.ajax({url: "http://localhost:8000",
+                    data: {want: 'load'}}).done(function(response) {
+                console.log(response);
+            };
         }
         
         /*
@@ -376,14 +380,14 @@ var specsExercise = (function () {
             if(correct) {
                 correctDisplay.show();
                 wrongDisplay.hide();
-                $('#showQuestion'+questionNumber).css({'background-color':'lightgreen'});
+                $('#showQuestion'+questionNumber).css({'background-color':'#dff0d8'});
             }
             else {
                 if(displayHints)
                     wrongDisplay.html(hint);
                 wrongDisplay.show();
                 correctDisplay.hide();
-                $('#showQuestion'+questionNumber).css('background-color', 'pink');
+                $('#showQuestion'+questionNumber).css('background-color', '#f2dede');
             }
         }
         
@@ -455,15 +459,10 @@ var specsExercise = (function () {
                 return false;
             };
             
+            //brings selected object forward
+            canvas.controlsAboveOverlay = true;
+            
             canvas.forEachObject(function (obj) {
-                //brings selected object forward, but implementation dots always on top
-                obj.on('selected', function () {
-                    canvas.bringToFront(obj);
-                    canvas.forEachObject(function (obj2) {
-                        if(obj2.name !== undefined)
-                            canvas.bringToFront(obj2);
-                    });
-                });
                 
                 //only uniform scaling allowed, no rotation
                 obj.lockUniScaling = true;
@@ -492,7 +491,32 @@ var specsExercise = (function () {
                         controller.updateImple(questionNumber, obj.name, point.x, point.y);
                     if(dynamicChecking)
                         controller.checkAnswer(questionNumber);
+                    
+                    sortObjects();
                 });
+                
+                //sort the objects' z-indices based on radius - larger in back, smaller in front
+                function sortObjects() {
+                    var objectsSortedRadius = [];
+                    var objectsUnsorted = canvas.getObjects();
+                    for(o in objectsUnsorted) {
+                        if(objectsSortedRadius.length === 0) {
+                            objectsSortedRadius.push(objectsUnsorted[o]);
+                        }
+                        else {
+                            var i = objectsSortedRadius.length-1;
+                            while(objectsSortedRadius[i].getBoundingRectWidth() > objectsUnsorted[o].getBoundingRectWidth()
+                                  & i > 0)
+                                i--;
+                            if(objectsSortedRadius[i].getBoundingRectWidth() > objectsUnsorted[o].getBoundingRectWidth())
+                                objectsSortedRadius.splice(i,0,objectsUnsorted[o]);
+                            else
+                                objectsSortedRadius.splice(i+1,0,objectsUnsorted[o]);
+                        }
+                    }
+                    for(o in objectsSortedRadius)
+                        objectsSortedRadius[o].sendToBack();
+                }
             });
         }
     }

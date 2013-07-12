@@ -72,7 +72,7 @@
 
 .specs pre {
     border-radius: 0;
-    width: 326;
-    padding: 10px;
+    width: 315;
+    padding: 10px 25px 10px 10px;
     margin: 0;
 }
