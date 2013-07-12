@@ -275,35 +275,35 @@ var specsExercise = (function () {
         @bigJSON the JSON string 
         */
         function loadQuestions(bigJSON) {
-//            for(j in bigJSON) {
-//                var jsonThing = bigJSON[j];
-//                var specs = [], imples = [], relationships = [];
-//                for(i in jsonThing['imples']) {
-//                    var currentImple = jsonThing['imples'][i];
-//                    imples.push(new Imple(i, currentImple['text'], currentImple['color']));
-//                }
-//                for(s in jsonThing['specs']) {
-//                    var currentSpec = jsonThing['specs'][s];
-//                    specs.push(new Spec(s, currentSpec['text'], currentSpec['color']));
-//                    for(o in currentSpec['contains']) {
-//                        var relString = s+' contains '+currentSpec['contains'][o];
-//                        if(relationships.indexOf(relString) < 0)
-//                            relationships.push(relString);
-//                    }
-//                    for(o in currentSpec['intersects']) {
-//                        var relString = s+' intersects '+currentSpec['intersects'][o];
-//                        var relStringRev = currentSpec['intersects'][o]+' intersects '+s;
-//                        if(relationships.indexOf(relString) < 0 & relationships.indexOf(relStringRev) < 0)
-//                            relationships.push(relString);
-//                    }
-//                }
-//                //tells model to fire the 'loaded' message
-//                model.loadQuestion(specs, imples, relationships);
-//            }
-            $.ajax({url: "http://localhost:8000",
-                    data: {want: 'load'}}).done(function(response) {
-                console.log(response);
-            };
+            for(j in bigJSON) {
+                var jsonThing = bigJSON[j];
+                var specs = [], imples = [], relationships = [];
+                for(i in jsonThing['imples']) {
+                    var currentImple = jsonThing['imples'][i];
+                    imples.push(new Imple(i, currentImple['text'], currentImple['color']));
+                }
+                for(s in jsonThing['specs']) {
+                    var currentSpec = jsonThing['specs'][s];
+                    specs.push(new Spec(s, currentSpec['text'], currentSpec['color']));
+                    for(o in currentSpec['contains']) {
+                        var relString = s+' contains '+currentSpec['contains'][o];
+                        if(relationships.indexOf(relString) < 0)
+                            relationships.push(relString);
+                    }
+                    for(o in currentSpec['intersects']) {
+                        var relString = s+' intersects '+currentSpec['intersects'][o];
+                        var relStringRev = currentSpec['intersects'][o]+' intersects '+s;
+                        if(relationships.indexOf(relString) < 0 & relationships.indexOf(relStringRev) < 0)
+                            relationships.push(relString);
+                    }
+                }
+                //tells model to fire the 'loaded' message
+                model.loadQuestion(specs, imples, relationships);
+            }
+//            $.ajax({url: "http://localhost:8000",
+//                    data: {want: 'load'}}).done(function(response) {
+//                console.log(response);
+//            };
         }
         
         /*
@@ -354,7 +354,6 @@ var specsExercise = (function () {
         //initializing the html objects
         var vennDiagrams = $('<div class="vennDiagrams wide tall"><canvas id="c'+questionNumber+'"height="448" width="448"></canvas></div>');
         var specsDisplay = $('<div class="specsDisplay narrow tall"></div>');
-        var impleDisplay = $('<div class="impleDisplay narrow short"></div>');
         var checkDisplay = $('<div class="checkDisplay wide short"></div>');
         
         var checkButton = $('<button class="btn">Check</button>');
@@ -401,7 +400,7 @@ var specsExercise = (function () {
                 displayAnswer([data[1], data[2]]);
         });
         
-        div.append(vennDiagrams, specsDisplay, checkDisplay, impleDisplay);
+        div.append(vennDiagrams, specsDisplay, checkDisplay);
         
         /*
         Initializes and displays the spec objects onto the canvas and keeps track of the canvas' state. 
@@ -430,8 +429,9 @@ var specsExercise = (function () {
             var imples = data[1];
             
             //create canvas objects
+            specsDisplay.append('<pre class="label">&#9679; SPECIFICATIONS</pre>');
             for(s in specs) {
-                var text1 = new fabric.Text(specs[s].getName(), {fontSize: 20, top:-10});
+                var text1 = new fabric.Text(specs[s].getName(), {fontFamily: 'sans-serif',fontSize: 20, top:-10});
                 var circleWidth = Math.round(Math.max(50,text1.width));
                 var circle1 = new fabric.Circle({radius:circleWidth,fill: specs[s].getColor(),name: specs[s].getName()});
                 var group1 = new fabric.Group([circle1, text1], {top:randomInteger(350)+48, left:randomInteger(350)+48});
@@ -440,18 +440,19 @@ var specsExercise = (function () {
                 
                 var newPre = $('<pre class="prettyprint specSpan" data-id="'+specs[s].getName()+'">'+specs[s].getSpec()+'</pre>');
                 specsDisplay.append(newPre);
-                newPre.css('background-color', circle1.fill);
+                newPre.css('border-color', circle1.fill);
             }
-            
+            specsDisplay.append('<pre class="label">&#9650; IMPLEMENTATIONS</pre>');
             for(i in imples) {
-                var impleCircle = new fabric.Circle({radius:10,fill: imples[i].getColor(),name: imples[i].getName(),
-                                                     top:randomInteger(428)+10, left:randomInteger(428)+10});
-                impleCircle.hasControls = false;
-                canvas.add(impleCircle);
+                var impleCircle = new fabric.Triangle({width:15,height:15,fill: imples[i].getColor(),name: imples[i].getName()});
+                var impleText = new fabric.Text(imples[i].getName(), {fontFamily: 'sans-serif',fontSize:15, top:12});
+                var impleGroup = new fabric.Group([impleText, impleCircle], {top:randomInteger(418)+20, left:randomInteger(418)+20});
+                impleGroup.hasControls = false;
+                canvas.add(impleGroup);
                 
-                var newPre = $('<pre class="prettyprint impleSpan" data-id="'+imples[i].getName()+'">'+imples[i].getSpec()+'</pre>');
-                impleDisplay.append(newPre);
-                newPre.css('background-color', impleCircle.fill.replace(',1)',',0.3)'));
+                var newPre = $('<pre class="prettyprint specSpan" data-id="'+imples[i].getName()+'">'+imples[i].getSpec()+'</pre>');
+                specsDisplay.append(newPre);
+                newPre.css('border-color', impleCircle.fill.replace(',1)',',0.3)'));
             }
             
             //disable right click on canvas
@@ -461,8 +462,30 @@ var specsExercise = (function () {
             
             //brings selected object forward
             canvas.controlsAboveOverlay = true;
+            canvas.on('selection:cleared', function() {
+                $('.specSpan').each(function() {
+                    $(this).css('background-color','#f5f5f5');
+                });
+            });
             
             canvas.forEachObject(function (obj) {
+                
+                obj.on('selected', function() {
+                    var thing;
+                    if(obj.item(1).name === undefined)
+                        thing = obj.item(0);
+                    else
+                        thing = obj.item(1);
+                    var specName = thing.name;
+                    $('.specSpan').each(function() {
+                        if($(this).attr('data-id') === specName) {
+                            specsDisplay.scrollTop($(this).position().top);
+                            $(this).css('background-color', thing.fill.replace(',1)',',0.3)'));
+                        }
+                        else
+                            $(this).css('background-color', '#f5f5f5');
+                    });
+                });
                 
                 //only uniform scaling allowed, no rotation
                 obj.lockUniScaling = true;
@@ -471,10 +494,10 @@ var specsExercise = (function () {
                 
                 //update the object's radius and position
                 var point = obj.getCenterPoint();
-                if(obj.name === undefined)
+                if(obj.item(1).name === undefined)
                     controller.updateSpec(questionNumber, obj.item(0).name, obj.getBoundingRectWidth()/2, point.x, point.y);
                 else
-                    controller.updateImple(questionNumber, obj.name, point.x, point.y);
+                    controller.updateImple(questionNumber, obj.item(1).name, point.x, point.y);
                 
                 //dynamically update position and radius, animate bounce if dragged out of bounds
                 obj.on('modified', function () {
@@ -485,10 +508,10 @@ var specsExercise = (function () {
                         obj.animate('left', point.x, {onChange: canvas.renderAll.bind(canvas), duration: 100});
                         obj.animate('top', point.y, {onChange: canvas.renderAll.bind(canvas), duration: 100});
                     }
-                    if(obj.name === undefined)
+                    if(obj.item(1).name === undefined)
                         controller.updateSpec(questionNumber, obj.item(0).name, obj.getBoundingRectWidth()/2, point.x, point.y);
                     else
-                        controller.updateImple(questionNumber, obj.name, point.x, point.y);
+                        controller.updateImple(questionNumber, obj.item(1).name, point.x, point.y);
                     if(dynamicChecking)
                         controller.checkAnswer(questionNumber);
                     
@@ -590,7 +613,7 @@ function checkOverlap(spec1, spec2) {
         if(r1 > r2)
             return spec1.getName()+" contains "+spec2.getName();
         else
-            return spec1.getName()+" inside "+spec2.getName();
+            return spec2.getName()+" contains "+spec1.getName();
     }
     else {  // if (distance <= r1 + r2)
         return spec1.getName()+" intersects "+spec2.getName();
