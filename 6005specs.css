@@ -41,6 +41,8 @@
 
 .specs .checkDisplay {
     text-align: center;
+    position: relative;
+    top: -152;
 }
 
 .specs .checkDisplay .btn {
@@ -59,20 +61,18 @@
 .specs .specsDisplay {
     overflow-y: auto;
     overflow-x: hidden;
-    height: 55%
-}
-
-.specs .impleDisplay {
-    overflow-y: auto;
-    overflow-x: hidden;
-    height: 44%;
-    position: relative;
-    top: -19%;
+    height: 100%
 }
 
 .specs pre {
     border-radius: 0;
-    width: 315;
+    width: 310;
     padding: 10px 25px 10px 10px;
     margin: 0;
+    border-width: 1px 1px 1px 5px;
+}
+
+.specs .label {
+    text-decoration-color: 'white';
+    background-color: 'black';
 }
