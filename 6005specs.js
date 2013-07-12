@@ -275,31 +275,35 @@ var specsExercise = (function () {
         @bigJSON the JSON string 
         */
         function loadQuestions(bigJSON) {
-            for(j in bigJSON) {
-                var jsonThing = bigJSON[j];
-                var specs = [], imples = [], relationships = [];
-                for(i in jsonThing['imples']) {
-                    var currentImple = jsonThing['imples'][i];
-                    imples.push(new Imple(i, currentImple['text'], currentImple['color']));
-                }
-                for(s in jsonThing['specs']) {
-                    var currentSpec = jsonThing['specs'][s];
-                    specs.push(new Spec(s, currentSpec['text'], currentSpec['color']));
-                    for(o in currentSpec['contains']) {
-                        var relString = s+' contains '+currentSpec['contains'][o];
-                        if(relationships.indexOf(relString) < 0)
-                            relationships.push(relString);
-                    }
-                    for(o in currentSpec['intersects']) {
-                        var relString = s+' intersects '+currentSpec['intersects'][o];
-                        var relStringRev = currentSpec['intersects'][o]+' intersects '+s;
-                        if(relationships.indexOf(relString) < 0 & relationships.indexOf(relStringRev) < 0)
-                            relationships.push(relString);
-                    }
-                }
-                //tells model to fire the 'loaded' message
-                model.loadQuestion(specs, imples, relationships);
-            }
+//            for(j in bigJSON) {
+//                var jsonThing = bigJSON[j];
+//                var specs = [], imples = [], relationships = [];
+//                for(i in jsonThing['imples']) {
+//                    var currentImple = jsonThing['imples'][i];
+//                    imples.push(new Imple(i, currentImple['text'], currentImple['color']));
+//                }
+//                for(s in jsonThing['specs']) {
+//                    var currentSpec = jsonThing['specs'][s];
+//                    specs.push(new Spec(s, currentSpec['text'], currentSpec['color']));
+//                    for(o in currentSpec['contains']) {
+//                        var relString = s+' contains '+currentSpec['contains'][o];
+//                        if(relationships.indexOf(relString) < 0)
+//                            relationships.push(relString);
+//                    }
+//                    for(o in currentSpec['intersects']) {
+//                        var relString = s+' intersects '+currentSpec['intersects'][o];
+//                        var relStringRev = currentSpec['intersects'][o]+' intersects '+s;
+//                        if(relationships.indexOf(relString) < 0 & relationships.indexOf(relStringRev) < 0)
+//                            relationships.push(relString);
+//                    }
+//                }
+//                //tells model to fire the 'loaded' message
+//                model.loadQuestion(specs, imples, relationships);
+//            }
+            $.ajax({url: "http://localhost:8000",
+                    data: {want: 'load'}}).done(function(response) {
+                console.log(response);
+            };
         }
         
         /*
