@@ -113,6 +113,6 @@ $(document).ready(function() {
     });
     
     $(".addi").on('click', addImple);
-    $(".dec").on('click', decSpec);
+    $(".deci").on('click', decImple);
     $("button[type='submit']").on('click', submit);
 });
