@@ -1,0 +1,71 @@
+<html>
+    <head>
+        <title>Testing Pie Charts</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+        <script src="http://code.highcharts.com/highcharts.js"></script>
+        <script src="http://code.highcharts.com/modules/exporting.js"></script>
+    </head>
+    <body>
+        <div class="chart" style="float:left"></div>
+        <div class="image" style="width:450px;height:450px;border:1px solid gray;float:left"></div>
+        <script>
+            var studentAnswers = [
+                [["findFirst intersects findLast", "findFirst inside findAll", "findFirst contains findIndex", "findLast inside findAll", "findAll contains findIndex"],5,true],
+                [["findFirst intersects findLast"],13,false],
+                [["findFirst intersects findLast", "findFirst inside findAll", "findLast inside findAll"],3,false],
+                [["findFirst intersects findLast", "findFirst intersects findAll", "findFirst contains findIndex", "findLast intersects findAll"],34,false]
+            ];
+            var dataAnswers = [];
+            for(s in studentAnswers) {
+                dataAnswers.push({});
+//                dataAnswers[s]['name'] = String(studentAnswers[s][0]);
+                dataAnswers[s]['y'] = studentAnswers[s][1];
+                dataAnswers[s]['image'] = '<img src="answer'+s+'.png"></img>';
+                if(studentAnswers[s][2]) {
+                    $('.image').html('<img src="answer'+s+'.png"></img>');
+                    dataAnswers[s]['sliced'] = true;
+                    dataAnswers[s]['selected'] = true;
+                }
+            }
+            var chart = $('.chart');
+            chart.highcharts({
+                chart: {
+                    plotBackgroundColor: null,
+                    plotBorderWidth: null,
+                    plotShadow: false,
+                    height: 450,
+                    width: 600
+                },
+                title: {
+                    text: 'Distribution of student answers'
+                },
+                tooltip: {
+                    headerFormat: '',
+                    pointFormat: '<b>{point.percentage:.1f} %</b>'
+                },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true,
+                        dataLabels: {
+                            enabled: true,
+                            format: '<b>{point.y}</b>'
+                        }
+                    }
+                },
+                series: [{
+                    type: 'pie',
+                    name: 'Percentage',
+                    data: dataAnswers,
+                    point: {
+                        events: {
+                            mouseOver: function(event) {
+                                this.select();
+                                $('.image').html(this.image);
+                            }
+                        }
+                    }
+                }]
+            });
+        </script>
+    </body>
+</html>
