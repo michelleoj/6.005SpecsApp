@@ -430,11 +430,19 @@ var specsExercise = (function () {
             
             //create canvas objects
             specsDisplay.append('<pre class="label">&#9679; SPECIFICATIONS</pre>');
+            var usedX = 0, usedY = 0;
             for(s in specs) {
                 var text1 = new fabric.Text(specs[s].getName(), {fontFamily: 'sans-serif',fontSize: 20, top:-10});
-                var circleWidth = Math.round(Math.max(50,text1.width));
+                var circleWidth = Math.round(Math.max(70,text1.width));
                 var circle1 = new fabric.Circle({radius:circleWidth,fill: specs[s].getColor(),name: specs[s].getName()});
-                var group1 = new fabric.Group([circle1, text1], {top:randomInteger(350)+48, left:randomInteger(350)+48});
+//                var group1 = new fabric.Group([circle1, text1], {top:randomInteger(350)+48, left:randomInteger(350)+48});
+                var group1 = new fabric.Group([circle1, text1]);
+                group1.set({top:usedY+group1.height/2, left:usedX+group1.width/2});
+                usedX += group1.width;
+                if(usedX > canvas.width-group1.width) {
+                    usedX = 0;
+                    usedY += group1.height;
+                }
                 
                 canvas.add(group1);
                 
@@ -442,11 +450,22 @@ var specsExercise = (function () {
                 specsDisplay.append(newPre);
                 newPre.css('border-color', circle1.fill);
             }
+            
             specsDisplay.append('<pre class="label">&#9650; IMPLEMENTATIONS</pre>');
+            usedX = 0;
+            usedY = 0;
             for(i in imples) {
                 var impleCircle = new fabric.Triangle({width:15,height:15,fill: imples[i].getColor(),name: imples[i].getName()});
                 var impleText = new fabric.Text(imples[i].getName(), {fontFamily: 'sans-serif',fontSize:15, top:12});
-                var impleGroup = new fabric.Group([impleText, impleCircle], {top:randomInteger(418)+20, left:randomInteger(418)+20});
+//                var impleGroup = new fabric.Group([impleText, impleCircle], {top:randomInteger(418)+20, left:randomInteger(418)+20});
+                var impleGroup = new fabric.Group([impleText, impleCircle]);
+                impleGroup.set({top:canvas.height-usedY-impleGroup.height, left:canvas.width-usedX-impleGroup.width});
+                usedX += impleGroup.width*2;
+                if(usedX > canvas.width-impleGroup.width*2) {
+                    usedX = 0;
+                    usedY += impleGroup.height*2;
+                }
+                
                 impleGroup.hasControls = false;
                 canvas.add(impleGroup);
                 
@@ -469,7 +488,7 @@ var specsExercise = (function () {
             });
             
             canvas.forEachObject(function (obj) {
-                obj.set({perPixelTargetFind: true});
+//                obj.set({perPixelTargetFind: true});
                 
                 obj.on('selected', function() {
                     var thing;
