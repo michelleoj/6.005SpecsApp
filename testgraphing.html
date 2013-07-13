@@ -28,6 +28,7 @@
                         //data for graph
                         var dataAnswers = [];
                         var index = 0;
+                        canvas.clear();
                         for(s in studentAnswers) {
                             dataAnswers.push({});
                             dataAnswers[index]['y'] = studentAnswers[s]['y'];
@@ -75,6 +76,7 @@
                                     events: {
                                         mouseOver: function(event) {
                                             this.select();
+                                            canvas.clear();
                                             canvas.loadFromJSON(this.image);
                                         }
                                     }

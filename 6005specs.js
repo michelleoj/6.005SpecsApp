@@ -221,16 +221,18 @@ var specsExercise = (function () {
             *   TESTING AJAX
             *   stores a student's answer and image on the server
             ***********************/
-            $.ajax({url: 'http://localhost:8000',
-                    data: {want: 'answer',
-                           question: String(questionNumber),
-                           answer: JSON.stringify(allRels),
-                           correct: String(correct),
-                           image: canvasJSON
-                          }
-                   }).done(function(response) {
-                console.log(response);
-            });
+            if(canvasJSON !== false) {
+                $.ajax({url: 'http://localhost:8000',
+                        data: {want: 'answer',
+                               question: String(questionNumber),
+                               answer: JSON.stringify(allRels),
+                               correct: String(correct),
+                               image: canvasJSON
+                              }
+                       }).done(function(response) {
+                    console.log(response);
+                });
+            }
         }
         
         /*
@@ -348,11 +350,12 @@ var specsExercise = (function () {
         
         var canvas;
         
-        var checkButton = $('<button class="btn">Check</button>');
+        var checkButton = $('<button class="btn">Submit</button>');
         checkDisplay.append(checkButton);
         checkButton.on('click', function () {
             //sends checked answer and JSON of canvas image to server
             controller.checkAnswer(questionNumber, JSON.stringify(canvas.toJSON()));
+            $(this).prop('disabled', true);
         });
         if(dynamicChecking)
             checkButton.prop('disabled', true);
@@ -531,7 +534,7 @@ var specsExercise = (function () {
                     else
                         controller.updateImple(questionNumber, obj.item(1).name, point.x, point.y);
                     if(dynamicChecking)
-                        controller.checkAnswer(questionNumber);
+                        controller.checkAnswer(questionNumber, false);
                     
                     sortObjects();
                 });
