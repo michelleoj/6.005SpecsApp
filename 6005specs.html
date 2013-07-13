@@ -15,6 +15,18 @@
     <body>
         <h2 class="text-center">6.005 Specs Exercise</h2>
         <h5 class="text-center">Developers: Michelle Johnson, Richard Lu</h5>
+        <div class="modal hide fade" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h6 class="text-center">Circles are specs, triangles are implementations. Analyze each spec, and resize/drag them around so that they intersect or contain each other appropriately. Drag the implementations onto the spec regions that they fulfill.</h6>
+            </div>
+        </div>
+        <script>
+            if(localStorage.specAppLoadedOnce === undefined) {
+                $('.modal').modal('show');
+                localStorage.specAppLoadedOnce = 1;
+            }
+        </script>
         <div class="specs" data-hint="on" data-dynamic="off"></div>
     </body>
 </html>

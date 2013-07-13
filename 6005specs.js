@@ -189,7 +189,7 @@ var specsExercise = (function () {
         
         @questionNumber a positive int
         */
-        function checkAnswer(questionNumber) {
+        function checkAnswer(questionNumber, canvasJSON) {
             var currentSpecs = [specObjects[questionNumber],impleObjects[questionNumber]];
             var currentRels = relationships[questionNumber];
             var correct = true;
@@ -219,13 +219,14 @@ var specsExercise = (function () {
             /***********************
             *
             *   TESTING AJAX
-            *   stores a student's answer on the server
+            *   stores a student's answer and image on the server
             ***********************/
             $.ajax({url: 'http://localhost:8000',
                     data: {want: 'answer',
                            question: String(questionNumber),
                            answer: JSON.stringify(allRels),
-                           correct: String(correct)
+                           correct: String(correct),
+                           image: canvasJSON
                           }
                    }).done(function(response) {
                 console.log(response);
@@ -260,7 +261,6 @@ var specsExercise = (function () {
         @bigJSON the JSON string 
         */
         function loadQuestions() {
-//            var bigJSON = testJSON;
             /***********************
             *
             *   TESTING AJAX
@@ -327,8 +327,8 @@ var specsExercise = (function () {
         
         @questionNumber a positive int
         */
-        function checkAnswer(questionNumber) {
-            model.checkAnswer(questionNumber);
+        function checkAnswer(questionNumber, canvasJSON) {
+            model.checkAnswer(questionNumber, canvasJSON);
         }
         
         return {loadQuestions: loadQuestions, updateSpec: updateSpec, updateImple: updateImple, checkAnswer: checkAnswer};
@@ -346,10 +346,13 @@ var specsExercise = (function () {
         var specsDisplay = $('<div class="specsDisplay narrow tall"></div>');
         var checkDisplay = $('<div class="checkDisplay wide short"></div>');
         
+        var canvas;
+        
         var checkButton = $('<button class="btn">Check</button>');
         checkDisplay.append(checkButton);
         checkButton.on('click', function () {
-            controller.checkAnswer(questionNumber);
+            //sends checked answer and JSON of canvas image to server
+            controller.checkAnswer(questionNumber, JSON.stringify(canvas.toJSON()));
         });
         if(dynamicChecking)
             checkButton.prop('disabled', true);
@@ -400,7 +403,7 @@ var specsExercise = (function () {
         @data the user's test questions containing both the specs and the implementation objects
         */
         function loadSpecs(data) {
-            var canvas = new fabric.Canvas('c'+questionNumber);
+            canvas = new fabric.Canvas('c'+questionNumber);
             
             //repositions the canvas after bringing it into view
             canvas.on('after:render', function() {
@@ -425,8 +428,11 @@ var specsExercise = (function () {
                 var text1 = new fabric.Text(specs[s].getName(), {fontFamily: 'sans-serif',fontSize: 20, top:-10});
                 var circleWidth = Math.round(Math.max(70,text1.width));
                 var circle1 = new fabric.Circle({radius:circleWidth,fill: specs[s].getColor(),name: specs[s].getName()});
-//                var group1 = new fabric.Group([circle1, text1], {top:randomInteger(350)+48, left:randomInteger(350)+48});
                 var group1 = new fabric.Group([circle1, text1]);
+                
+                /***************************************************************/
+                //ATTEMPT AT ORDERING THEM SO THEY DON'T INITIALLY OVERLAP
+                /***************************************************************/
                 group1.set({top:usedY+group1.height/2+5, left:usedX+group1.width/2+5});
                 usedX += group1.width+5;
                 if(usedX > canvas.width-group1.width-10) {

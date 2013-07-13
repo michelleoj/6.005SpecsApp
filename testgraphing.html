@@ -4,78 +4,85 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
         <script src="http://code.highcharts.com/highcharts.js"></script>
         <script src="http://code.highcharts.com/modules/exporting.js"></script>
+        <script src="fabric.js"></script>
     </head>
     <body>
+        <input class="questionNumber">
         <div class="chart" style="float:left"></div>
-        <div class="image" style="width:450px;height:450px;border:1px solid gray;float:left"></div>
+        <div class="image" style="width:450px;height:450px;border:1px solid gray;float:left">
+            <canvas id="canvas" height=450 width=450></canvas>
+        </div>
         <script>
-//            var studentAnswers = [
-//                [["findFirst intersects findLast", "findFirst inside findAll", "findFirst contains findIndex", "findLast inside findAll", "findAll contains findIndex"],5,true],
-//                [["findFirst intersects findLast"],13,false],
-//                [["findFirst intersects findLast", "findFirst inside findAll", "findLast inside findAll"],3,false],
-//                [["findFirst intersects findLast", "findFirst intersects findAll", "findFirst contains findIndex", "findLast intersects findAll"],34,false]
-//            ];
-            
             /***********************
             *
             *   TESTING AJAX
             *   grabs the stored answers data from the server
             ***********************/
-            $.ajax({url: "http://localhost:8000", data: {want: 'answers', question: '2'}}).done(function(response) {
-                var studentAnswers = jQuery.parseJSON(response);
-                var dataAnswers = [];
-                var index = 0;
-                for(s in studentAnswers) {
-                    dataAnswers.push({});
-                    dataAnswers[index]['y'] = studentAnswers[s]['y'];
-                    dataAnswers[index]['image'] = '<img src="answer'+index+'.png"></img>';
-                    if(studentAnswers[s]['correct']) {
-                        $('.image').html('<img src="answer'+index+'.png"></img>');
-                        dataAnswers[index]['sliced'] = true;
-                        dataAnswers[index]['selected'] = true;
-                    }
-                    index++;
-                }
-                console.log(dataAnswers);
-                var chart = $('.chart');
-                chart.highcharts({
-                    chart: {
-                        plotBackgroundColor: null,
-                        plotBorderWidth: null,
-                        plotShadow: false,
-                        height: 450,
-                        width: 600
-                    },
-                    title: {
-                        text: 'Distribution of student answers'
-                    },
-                    tooltip: {
-                        headerFormat: '',
-                        pointFormat: '<b>{point.percentage:.1f} %</b>'
-                    },
-                    plotOptions: {
-                        pie: {
-                            allowPointSelect: true,
-                            dataLabels: {
-                                enabled: true,
-                                format: '<b>{point.y}</b>'
+            var canvas = new fabric.Canvas('canvas');
+            $('.questionNumber').on('keyup', function(evt) {
+                //on enter
+                if(evt.which === 13) {
+                    $.ajax({url: "http://localhost:8000", data: {want: 'answers', question: $('.questionNumber').val()}}).done(function(response) {
+                        //parse the array of answers
+                        var studentAnswers = jQuery.parseJSON(response);
+                        //data for graph
+                        var dataAnswers = [];
+                        var index = 0;
+                        for(s in studentAnswers) {
+                            dataAnswers.push({});
+                            dataAnswers[index]['y'] = studentAnswers[s]['y'];
+                            //THIS IS A JSON STRING FOR FABRIC.CANVAS TO LOAD
+                            dataAnswers[index]['image'] = studentAnswers[s]['image'];
+                            if(studentAnswers[s]['correct']) {
+                                canvas.loadFromJSON(studentAnswers[s]['image']);
+                                dataAnswers[index]['sliced'] = true;
+                                dataAnswers[index]['selected'] = true;
                             }
+                            index++;
                         }
-                    },
-                    series: [{
-                        type: 'pie',
-                        name: 'Percentage',
-                        data: dataAnswers,
-                        point: {
-                            events: {
-                                mouseOver: function(event) {
-                                    this.select();
-                                    $('.image').html(this.image);
+                        //make pie chart
+                        var chart = $('.chart');
+                        chart.highcharts({
+                            chart: {
+                                plotBackgroundColor: null,
+                                plotBorderWidth: null,
+                                plotShadow: false,
+                                height: 450,
+                                width: 600
+                            },
+                            title: {
+                                text: 'Distribution of student answers'
+                            },
+                            tooltip: {
+                                headerFormat: '',
+                                pointFormat: '<b>{point.percentage:.1f} %</b>'
+                            },
+                            plotOptions: {
+                                pie: {
+                                    allowPointSelect: true,
+                                    dataLabels: {
+                                        enabled: true,
+                                        format: '<b>{point.y}</b>'
+                                    }
                                 }
-                            }
-                        }
-                    }]
-                });
+                            },
+                            series: [{
+                                type: 'pie',
+                                name: 'Percentage',
+                                data: dataAnswers,
+                                animation: false,
+                                point: {
+                                    events: {
+                                        mouseOver: function(event) {
+                                            this.select();
+                                            canvas.loadFromJSON(this.image);
+                                        }
+                                    }
+                                }
+                            }]
+                        });
+                    });
+                }
             });
         </script>
     </body>

@@ -12,10 +12,11 @@ var studentAnswers = [
     {},{},{},{}
 ];
 
-function addAnswer(answer, questionNumber, correct) {
+function addAnswer(answer, questionNumber, correct, image) {
     if(studentAnswers[questionNumber][answer] === undefined) {
         studentAnswers[questionNumber][answer] = {};
         studentAnswers[questionNumber][answer]['y'] = 1;
+        studentAnswers[questionNumber][answer]['image'] = image;
     }
     else
         studentAnswers[questionNumber][answer]['y'] += 1;
@@ -26,8 +27,8 @@ function addAnswer(answer, questionNumber, correct) {
     return "added answer "+answer+" to question "+questionNumber;
 }
 
-my_http.createServer(function(request,response){  
-    sys.puts(request.url);
+my_http.createServer(function(request,response){ 
+    sys.puts("I got kicked");
     response.writeHeader(200, {"Content-Type": "text/plain",
                                "Access-Control-Allow-Origin": "*"});
     var data = require('url').parse(request.url, true).query;
@@ -39,12 +40,13 @@ my_http.createServer(function(request,response){
     *   answers returns the JSON string of the answers data for the desired question
     *   answer adds an answer to the database for the desired question
     ***********************/
+    var questionNumber = Math.max(0,Math.min(studentAnswers.length-1,parseInt(data.question)));
     if(data.want === 'load')
         answer = JSON.stringify(questions);
     else if(data.want === 'answers')
-        answer = JSON.stringify(studentAnswers[parseInt(data.question)]);
+        answer = JSON.stringify(studentAnswers[questionNumber]);
     else if(data.want === 'answer')
-        answer = addAnswer(data.answer, parseInt(data.question), data.correct);
+        answer = addAnswer(data.answer, questionNumber, data.correct, data.image);
     response.write(answer);
     response.end();  
 }).listen(8000);  
