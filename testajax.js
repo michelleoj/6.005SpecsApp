@@ -8,12 +8,43 @@ var questions = [
     {"specs":{"minA":{"contains":["min1","min3"],"intersects":["minB"],"text":"minA(list)\n// requires: list is an array of positive numbers with at least one element\n// effects: returns the smallest element in list","color":"rgba(0,0,139,0.3)"},"minB":{"contains":["min2","min3"],"intersects":["minA"],"text":"minB(list)\n// requires: list is an array of numbers in increasing order\n// effects: returns the smallest element in list, or returns -Infinity if the list is empty","color":"rgba(255,140,0,0.3)"}},"imples":{"min1":{"text":"function min1(list) {\n  var min = 0;\n  for (var i = 0; i < list.length; ++i) {\n    if (list[i] < min) min = list[i];\n  }\n  return min;\n}","color":"rgba(128,0,128,1)"},"min2":{"text":"function min2(list) {\n  if (list.length == 0) return -Infinity; else return list[0];\n}","color":"rgba(0,255,255,1)"},"min3":{"text":"function min3(list) {\n  return Math.min(list);\n}","color":"rgba(128,0,0,1)"}}}
 ];
 
+var studentAnswers = [
+    {},{},{},{}
+];
+
+function addAnswer(answer, questionNumber, correct) {
+    if(studentAnswers[questionNumber][answer] === undefined) {
+        studentAnswers[questionNumber][answer] = {};
+        studentAnswers[questionNumber][answer]['y'] = 1;
+    }
+    else
+        studentAnswers[questionNumber][answer]['y'] += 1;
+    if(correct === 'true')
+        studentAnswers[questionNumber][answer]['correct'] = true;
+    else
+        studentAnswers[questionNumber][answer]['correct'] = false;
+    return "added answer "+answer+" to question "+questionNumber;
+}
+
 my_http.createServer(function(request,response){  
-    sys.puts("I got kicked");  
+    sys.puts(request.url);
     response.writeHeader(200, {"Content-Type": "text/plain",
                                "Access-Control-Allow-Origin": "*"});
     var data = require('url').parse(request.url, true).query;
-    var answer = data.want;
+    var answer = "invalid request";
+    /***********************
+    *
+    *   TESTING AJAX
+    *   load returns the JSON string of the questions
+    *   answers returns the JSON string of the answers data for the desired question
+    *   answer adds an answer to the database for the desired question
+    ***********************/
+    if(data.want === 'load')
+        answer = JSON.stringify(questions);
+    else if(data.want === 'answers')
+        answer = JSON.stringify(studentAnswers[parseInt(data.question)]);
+    else if(data.want === 'answer')
+        answer = addAnswer(data.answer, parseInt(data.question), data.correct);
     response.write(answer);
     response.end();  
 }).listen(8000);  

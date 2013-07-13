@@ -190,61 +190,46 @@ var specsExercise = (function () {
         @questionNumber a positive int
         */
         function checkAnswer(questionNumber) {
-            var currentSpecs = specObjects[questionNumber];
-            var currentImples = impleObjects[questionNumber];
+            var currentSpecs = [specObjects[questionNumber],impleObjects[questionNumber]];
             var currentRels = relationships[questionNumber];
             var correct = true;
-            var alreadyChecked= [];
-            var numRels = 0;
-            var hint;
-            var correctRels = [];
             var allRels = [];
-            for(i in currentSpecs) {
-                alreadyChecked.push(i+i);
-                for(j in currentSpecs) {
-                    if(alreadyChecked.indexOf(i+j) < 0 & alreadyChecked.indexOf(j+i) < 0) {
-                        alreadyChecked.push(i+j);
-                        var newRel = checkOverlap(currentSpecs[i], currentSpecs[j]);
-                        if(newRel !== '') {
-                            var newRelRev = checkOverlap(currentSpecs[j], currentSpecs[i]);
-                            if(currentRels.indexOf(newRel) < 0 & currentRels.indexOf(newRelRev) < 0) {
-                                hint = newRel;
-                                correct = false;
+            var statusRels = []
+            for(i in currentSpecs[0]) {
+                for(k in currentSpecs) {
+                    for(j in currentSpecs[k]) {
+                        if(i !== j) {
+                            var newRel = checkOverlap(currentSpecs[0][i], currentSpecs[k][j]);
+                            var newRelRev = checkOverlap(currentSpecs[k][j], currentSpecs[0][i]);
+                            if(newRel.indexOf('is disjoint from') < 0 & allRels.indexOf(newRel) < 0 & allRels.indexOf(newRelRev) < 0) {
+                                if(currentRels.indexOf(newRel) < 0 & currentRels.indexOf(newRelRev) < 0)
+                                    correct = false;
+                                allRels.push(newRel);
                             }
-                            else
-                                correctRels.push([newRel, newRelRev]);
-                            numRels++;
-                            allRels.push(newRel);
+                            if(statusRels.indexOf(newRel) < 0 & statusRels.indexOf(newRelRev) < 0)
+                                statusRels.push(newRel);
                         }
-                    }
-                }
-                for(k in currentImples) {
-                    var newRel = checkOverlap(currentSpecs[i], currentImples[k]);
-                    if(newRel !== '') {
-                        var newRelRev = checkOverlap(currentImples[k], currentSpecs[i]);
-                        if(currentRels.indexOf(newRel) < 0 & currentRels.indexOf(newRelRev) < 0) {
-                            hint = newRel;
-                            correct = false;
-                        }
-                        else
-                            correctRels.push([newRel, newRelRev]);
-                        numRels++;
-                        allRels.push(newRel);
                     }
                 }
             }
-            if(numRels !== currentRels.length) {
-                for(c in correctRels) {
-                    if(currentRels.indexOf(correctRels[c][0]) < 0 & currentRels.indexOf(correctRels[c][1]) < 0)
-                        hint = correctRels[c][0];
-                }
+            if(allRels.length !== currentRels.length)
                 correct = false;
-                if(hint === undefined)
-                    hint = 'there is an extra or missing relationship';
-            }
-            hint = 'Incorrect Relationship: '+hint;
-            console.log(allRels);
-            handler.trigger('checked', [questionNumber, correct, hint]);
+            handler.trigger('checked', [questionNumber, correct, JSON.stringify(statusRels)]);
+            
+            /***********************
+            *
+            *   TESTING AJAX
+            *   stores a student's answer on the server
+            ***********************/
+            $.ajax({url: 'http://localhost:8000',
+                    data: {want: 'answer',
+                           question: String(questionNumber),
+                           answer: JSON.stringify(allRels),
+                           correct: String(correct)
+                          }
+                   }).done(function(response) {
+                console.log(response);
+            });
         }
         
         /*
@@ -274,36 +259,41 @@ var specsExercise = (function () {
         
         @bigJSON the JSON string 
         */
-        function loadQuestions(bigJSON) {
-            for(j in bigJSON) {
-                var jsonThing = bigJSON[j];
-                var specs = [], imples = [], relationships = [];
-                for(i in jsonThing['imples']) {
-                    var currentImple = jsonThing['imples'][i];
-                    imples.push(new Imple(i, currentImple['text'], currentImple['color']));
-                }
-                for(s in jsonThing['specs']) {
-                    var currentSpec = jsonThing['specs'][s];
-                    specs.push(new Spec(s, currentSpec['text'], currentSpec['color']));
-                    for(o in currentSpec['contains']) {
-                        var relString = s+' contains '+currentSpec['contains'][o];
-                        if(relationships.indexOf(relString) < 0)
-                            relationships.push(relString);
+        function loadQuestions() {
+//            var bigJSON = testJSON;
+            /***********************
+            *
+            *   TESTING AJAX
+            *   loads the questions from the server
+            ***********************/
+            $.ajax({url: "http://localhost:8000", data: {want: 'load'}}).done(function(response) {
+                var bigJSON = jQuery.parseJSON(response);
+                for(j in bigJSON) {
+                    var jsonThing = bigJSON[j];
+                    var specs = [], imples = [], relationships = [];
+                    for(i in jsonThing['imples']) {
+                        var currentImple = jsonThing['imples'][i];
+                        imples.push(new Imple(i, currentImple['text'], currentImple['color']));
                     }
-                    for(o in currentSpec['intersects']) {
-                        var relString = s+' intersects '+currentSpec['intersects'][o];
-                        var relStringRev = currentSpec['intersects'][o]+' intersects '+s;
-                        if(relationships.indexOf(relString) < 0 & relationships.indexOf(relStringRev) < 0)
-                            relationships.push(relString);
+                    for(s in jsonThing['specs']) {
+                        var currentSpec = jsonThing['specs'][s];
+                        specs.push(new Spec(s, currentSpec['text'], currentSpec['color']));
+                        for(o in currentSpec['contains']) {
+                            var relString = s+' contains '+currentSpec['contains'][o];
+                            if(relationships.indexOf(relString) < 0)
+                                relationships.push(relString);
+                        }
+                        for(o in currentSpec['intersects']) {
+                            var relString = s+' intersects '+currentSpec['intersects'][o];
+                            var relStringRev = currentSpec['intersects'][o]+' intersects '+s;
+                            if(relationships.indexOf(relString) < 0 & relationships.indexOf(relStringRev) < 0)
+                                relationships.push(relString);
+                        }
                     }
+                    //tells model to fire the 'loaded' message
+                    model.loadQuestion(specs, imples, relationships);
                 }
-                //tells model to fire the 'loaded' message
-                model.loadQuestion(specs, imples, relationships);
-            }
-//            $.ajax({url: "http://localhost:8000",
-//                    data: {want: 'load'}}).done(function(response) {
-//                console.log(response);
-//            };
+            });
         }
         
         /*
@@ -437,11 +427,11 @@ var specsExercise = (function () {
                 var circle1 = new fabric.Circle({radius:circleWidth,fill: specs[s].getColor(),name: specs[s].getName()});
 //                var group1 = new fabric.Group([circle1, text1], {top:randomInteger(350)+48, left:randomInteger(350)+48});
                 var group1 = new fabric.Group([circle1, text1]);
-                group1.set({top:usedY+group1.height/2, left:usedX+group1.width/2});
-                usedX += group1.width;
-                if(usedX > canvas.width-group1.width) {
+                group1.set({top:usedY+group1.height/2+5, left:usedX+group1.width/2+5});
+                usedX += group1.width+5;
+                if(usedX > canvas.width-group1.width-10) {
                     usedX = 0;
-                    usedY += group1.height;
+                    usedY += group1.height+5;
                 }
                 
                 canvas.add(group1);
@@ -597,7 +587,7 @@ var specsExercise = (function () {
         }
         div.addClass('tabbable tabs-left');
         div.append(navTabs, tabContent);
-        controller.loadQuestions(testJSON);
+        controller.loadQuestions();
     }
     
     return {setup: setup};
@@ -629,7 +619,7 @@ function checkOverlap(spec1, spec2) {
     var r2 = spec2.getRadius();
     var distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
     if (distance > (r1 + r2)) {
-        return '';
+        return spec1.getName()+' is disjoint from '+spec2.getName();
     }
     else if (distance <= Math.abs(r1 - r2)) {
         if(r1 > r2)
