@@ -92,9 +92,9 @@ $(document).ready(function() {
     
     function addImple() {
         counterimple += 1;
-        var imple = $('<div style="margin-bottom:15px" class="imple' + counterimple + '">' +
-                    '<input class="name span6" type="text" placeholder="Implementation name..."><br>' +
-                    '<textarea class="span6" style="height: 200px" placeholder="Enter implementation"></textarea><br>' +
+        var imple = $('<div style="margin-bottom:15px; padding: 5px 25px" class="imple' + counterimple + '">' +
+                    '<input class="name span4" type="text" placeholder="Implementation name..."><br>' +
+                    '<textarea class="span4" style="height: 200px" placeholder="Enter implementation"></textarea><br>' +
                     '<button data-imple="' + counterimple + '" class="deci btn btn-info" class="btn btn-primary">Remove Implementation</button>' +
                     '</div>');
         imple.find("button").on('click', function() {
@@ -122,4 +122,18 @@ $(document).ready(function() {
         });
     });
     $("button[type='submit']").on('click', submit);
+    
+    $("#testbutton").on('click', searchQuestions);
+    
+    function searchQuestions() {
+        var txtbox = $('#test');
+        var jsonbox = document.getElementById("result");
+        var str = txtbox.val();
+        var strlength = str.length;
+        var start = $('#result').val().indexOf(str);
+        var end = $('#result').val().indexOf(str)+strlength;
+        jsonbox.setSelectionRange(start, end);
+
+    }
+        
 });

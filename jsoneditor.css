@@ -17,6 +17,8 @@
 
 .imple div {
     margin-bottom: 15px;
+    padding: 5px 25px;
+    display: inline-block;
 }
 
 input {
@@ -30,9 +32,3 @@ input {
     overflow: auto;
     
 }
-
-/*.imple {
-    position: relative;
-    width: 600px;
-    margin: auto auto;
-}*/
