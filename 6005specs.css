@@ -1,12 +1,14 @@
 .specs {
     width: 944px;
+    height: 602px;
     margin: auto auto;
+    overflow: hidden;
 }
 
 .specs .nav-tabs {
     margin-right: 2;
     width: 138;
-    height: 600px;
+    height: 602px;
     overflow-y: auto;
     overflow-x: hidden;
     direction: rtl;
@@ -18,50 +20,54 @@
     width: 800px;
 }
 
-.specs .short {
-    height: 148;
-}
-
-.specs .tall {
-    height: 448;
-}
-
-.specs .narrow {
-    width: 348;
-}
-
-.specs .wide {
-    width: 448;
-}
-
-.specs .tab-pane div {
-    float: left;
-    border: 1px solid lightgray;
+.specs .vennDiagrams {
+    height: 450px;
+    width: 450px;
 }
 
 .specs .checkDisplay {
     text-align: center;
     position: relative;
-    top: -152;
+    top: -600px;
+    height: 150px;
+    width: 450px;
 }
 
 .specs .checkDisplay .btn {
-    width: 448;
-    height: 46;
+    width: 450px;
+    height: 50px;
     padding: 0;
     border-radius: 0;
 }
 
-.specs .checkDisplay .alert {
-    width: 448;
-    height: 100;
+.specs .checkDisplay .notify {
+    width: 450px;
+    height: 100px;
     padding: 0;
+    text-align: center;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.specs .checkDisplay .correct {
+    color: #468847;
+    background-color: #dff0d8;
+}
+
+.specs .checkDisplay .wrong {
+    color: #b94a48;
+    background-color: #f2dede;
 }
 
 .specs .specsDisplay {
+    border-left: 1px solid lightgray;
     overflow-y: auto;
     overflow-x: hidden;
-    height: 100%
+    height: 600px;
+    width: 349px;
+    position: relative;
+    top: -450px;
+    left: 450px;
 }
 
 .specs pre {

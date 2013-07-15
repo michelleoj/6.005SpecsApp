@@ -188,63 +188,52 @@ var specsExercise = (function () {
         'checked' when finished. 
         
         @questionNumber a positive int
+        @canvasJSON a JSON string or false
         */
-        function checkAnswer(questionNumber) {
-            var currentSpecs = specObjects[questionNumber];
-            var currentImples = impleObjects[questionNumber];
+        function checkAnswer(questionNumber, canvasJSON) {
+            var currentSpecs = [specObjects[questionNumber],impleObjects[questionNumber]];
             var currentRels = relationships[questionNumber];
             var correct = true;
-            var alreadyChecked= [];
-            var numRels = 0;
-            var hint;
-            var correctRels = [];
             var allRels = [];
-            for(i in currentSpecs) {
-                alreadyChecked.push(i+i);
-                for(j in currentSpecs) {
-                    if(alreadyChecked.indexOf(i+j) < 0 & alreadyChecked.indexOf(j+i) < 0) {
-                        alreadyChecked.push(i+j);
-                        var newRel = checkOverlap(currentSpecs[i], currentSpecs[j]);
-                        if(newRel !== '') {
-                            var newRelRev = checkOverlap(currentSpecs[j], currentSpecs[i]);
-                            if(currentRels.indexOf(newRel) < 0 & currentRels.indexOf(newRelRev) < 0) {
-                                hint = newRel;
-                                correct = false;
+            var statusRels = []
+            for(i in currentSpecs[0]) {
+                for(k in currentSpecs) {
+                    for(j in currentSpecs[k]) {
+                        if(i !== j) {
+                            var newRel = checkOverlap(currentSpecs[0][i], currentSpecs[k][j]);
+                            var newRelRev = checkOverlap(currentSpecs[k][j], currentSpecs[0][i]);
+                            if(newRel.indexOf('is disjoint from') < 0 & allRels.indexOf(newRel) < 0 & allRels.indexOf(newRelRev) < 0) {
+                                if(currentRels.indexOf(newRel) < 0 & currentRels.indexOf(newRelRev) < 0)
+                                    correct = false;
+                                allRels.push(newRel);
                             }
-                            else
-                                correctRels.push([newRel, newRelRev]);
-                            numRels++;
-                            allRels.push(newRel);
+                            if(statusRels.indexOf(newRel) < 0 & statusRels.indexOf(newRelRev) < 0)
+                                statusRels.push(newRel);
                         }
-                    }
-                }
-                for(k in currentImples) {
-                    var newRel = checkOverlap(currentSpecs[i], currentImples[k]);
-                    if(newRel !== '') {
-                        var newRelRev = checkOverlap(currentImples[k], currentSpecs[i]);
-                        if(currentRels.indexOf(newRel) < 0 & currentRels.indexOf(newRelRev) < 0) {
-                            hint = newRel;
-                            correct = false;
-                        }
-                        else
-                            correctRels.push([newRel, newRelRev]);
-                        numRels++;
-                        allRels.push(newRel);
                     }
                 }
             }
-            if(numRels !== currentRels.length) {
-                for(c in correctRels) {
-                    if(currentRels.indexOf(correctRels[c][0]) < 0 & currentRels.indexOf(correctRels[c][1]) < 0)
-                        hint = correctRels[c][0];
-                }
+            if(allRels.length !== currentRels.length)
                 correct = false;
-                if(hint === undefined)
-                    hint = 'there is an extra or missing relationship';
+            handler.trigger('checked', [questionNumber, correct, JSON.stringify(statusRels)]);
+            
+            /***********************
+            *
+            *   AJAX
+            *   stores a student's answer and image on the server
+            ***********************/
+            if(canvasJSON !== false) {
+                $.ajax({url: 'http://localhost:8000',
+                        data: {want: 'answer',
+                               question: String(questionNumber),
+                               answer: JSON.stringify(allRels),
+                               correct: String(correct),
+                               image: canvasJSON
+                              }
+                       }).done(function(response) {
+                    console.log(response);
+                });
             }
-            hint = 'Incorrect Relationship: '+hint;
-            console.log(allRels);
-            handler.trigger('checked', [questionNumber, correct, hint]);
         }
         
         /*
@@ -300,14 +289,10 @@ var specsExercise = (function () {
                 //tells model to fire the 'loaded' message
                 model.loadQuestion(specs, imples, relationships);
             }
-//            $.ajax({url: "http://localhost:8000",
-//                    data: {want: 'load'}}).done(function(response) {
-//                console.log(response);
-//            };
         }
         
         /*
-        Triggers the event that loads the next Spec object 
+        Triggers the event that loads or updates a Spec object 
         
         @questionNumber a positive int 
         @name a string
@@ -320,11 +305,10 @@ var specsExercise = (function () {
         }
         
         /*
-        Triggers the event that loads the next Imple object 
+        Triggers the event that loads or updates a Imple object 
         
         @questionNumber a positive int 
         @name a string
-        @radius a positive int
         @x a positive int
         @y a positive int
         */
@@ -336,9 +320,10 @@ var specsExercise = (function () {
         Triggers the check answer event
         
         @questionNumber a positive int
+        @canvasJSON a JSON string or false
         */
-        function checkAnswer(questionNumber) {
-            model.checkAnswer(questionNumber);
+        function checkAnswer(questionNumber, canvasJSON) {
+            model.checkAnswer(questionNumber, canvasJSON);
         }
         
         return {loadQuestions: loadQuestions, updateSpec: updateSpec, updateImple: updateImple, checkAnswer: checkAnswer};
@@ -356,22 +341,27 @@ var specsExercise = (function () {
         var specsDisplay = $('<div class="specsDisplay narrow tall"></div>');
         var checkDisplay = $('<div class="checkDisplay wide short"></div>');
         
-        var checkButton = $('<button class="btn">Check</button>');
+        var canvas;
+        
+        var checkButton = $('<button class="btn">Submit</button>');
         checkDisplay.append(checkButton);
         checkButton.on('click', function () {
-            controller.checkAnswer(questionNumber);
+            //submits checked answer and image to server, disables button
+            controller.checkAnswer(questionNumber, JSON.stringify(canvas.toJSON()));
+            $(this).prop('disabled', true);
         });
         if(dynamicChecking)
             checkButton.prop('disabled', true);
         
-        var correctDisplay = $('<div class="alert alert-success">Correct!</div>');
-        var wrongDisplay = $('<div class="alert alert-error">Wrong.</div>');
+        //initializes the feedback displays
+        var correctDisplay = $('<div class="notify correct">Correct!</div>');
+        var wrongDisplay = $('<div class="notify wrong">Wrong.</div>');
         checkDisplay.append(correctDisplay, wrongDisplay);
         
         /*
-        Displays the feedback and hints based on the user's answers
+        Displays feedback based on the user's answers
         
-        @data the user's test questions containing both the specs and the implementation objects
+        @data contains a boolean for correctness and a string for feedback
         */
         function displayAnswer(data) {
             var correct = data[0];
@@ -400,28 +390,27 @@ var specsExercise = (function () {
                 displayAnswer([data[1], data[2]]);
         });
         
+        //populates the view for the current question
         div.append(vennDiagrams, specsDisplay, checkDisplay);
         
         /*
         Initializes and displays the spec objects onto the canvas and keeps track of the canvas' state. 
-        Initializes the feedback displays. Also displays the descriptions of the specs
-        and implementation.
+        Also displays the descriptions of the specs and implementation.
         
-        @data the user's test questions containing both the specs and the implementation objects
+        @data contains both the specs and the implementation objects for the current question
         */
         function loadSpecs(data) {
-            var canvas = new fabric.Canvas('c'+questionNumber);
+            canvas = new fabric.Canvas('c'+questionNumber);
             
             //repositions the canvas after bringing it into view
             canvas.on('after:render', function() {
                 canvas.calcOffset();
             });
-
             $('#showQuestion'+questionNumber).on('click', function (evt) {
                 setTimeout(function(){canvas.renderAll();},500);
             });
             
-            //feedback
+            //initially hides the feedback views
             correctDisplay.hide();
             wrongDisplay.hide();
             
@@ -430,11 +419,22 @@ var specsExercise = (function () {
             
             //create canvas objects
             specsDisplay.append('<pre class="label">&#9679; SPECIFICATIONS</pre>');
+            var usedX = 0, usedY = 0;
             for(s in specs) {
                 var text1 = new fabric.Text(specs[s].getName(), {fontFamily: 'sans-serif',fontSize: 20, top:-10});
-                var circleWidth = Math.round(Math.max(50,text1.width));
-                var circle1 = new fabric.Circle({radius:circleWidth,fill: specs[s].getColor(),name: specs[s].getName()});
-                var group1 = new fabric.Group([circle1, text1], {top:randomInteger(350)+48, left:randomInteger(350)+48});
+                var circleRadius = Math.round(Math.max(70,text1.width/2+10));
+                var circle1 = new fabric.Circle({radius:circleRadius,fill: specs[s].getColor(),name: specs[s].getName()});
+                var group1 = new fabric.Group([circle1, text1]);
+                
+                /***************************************************************/
+                //ATTEMPT AT ORDERING THEM SO THEY DON'T INITIALLY OVERLAP
+                /***************************************************************/
+                group1.set({top:usedY+group1.height/2+5, left:usedX+group1.width/2+5});
+                usedX += group1.width+5;
+                if(usedX > canvas.width-group1.width-10) {
+                    usedX = 0;
+                    usedY += group1.height+5;
+                }
                 
                 canvas.add(group1);
                 
@@ -442,11 +442,25 @@ var specsExercise = (function () {
                 specsDisplay.append(newPre);
                 newPre.css('border-color', circle1.fill);
             }
+            
             specsDisplay.append('<pre class="label">&#9650; IMPLEMENTATIONS</pre>');
+            usedX = 0;
+            usedY = 0;
             for(i in imples) {
                 var impleCircle = new fabric.Triangle({width:15,height:15,fill: imples[i].getColor(),name: imples[i].getName()});
                 var impleText = new fabric.Text(imples[i].getName(), {fontFamily: 'sans-serif',fontSize:15, top:12});
-                var impleGroup = new fabric.Group([impleText, impleCircle], {top:randomInteger(418)+20, left:randomInteger(418)+20});
+                var impleGroup = new fabric.Group([impleText, impleCircle]);
+                
+                /***************************************************************/
+                //ATTEMPT AT ORDERING THEM SO THEY DON'T INITIALLY OVERLAP
+                /***************************************************************/
+                impleGroup.set({top:canvas.height-usedY-impleGroup.height, left:canvas.width-usedX-impleGroup.width});
+                usedX += impleGroup.width*2;
+                if(usedX > canvas.width-impleGroup.width*2) {
+                    usedX = 0;
+                    usedY += impleGroup.height*2;
+                }
+                
                 impleGroup.hasControls = false;
                 canvas.add(impleGroup);
                 
@@ -460,8 +474,9 @@ var specsExercise = (function () {
                 return false;
             };
             
-            //brings selected object forward
+            //keeps handles on top of the objects
             canvas.controlsAboveOverlay = true;
+            //clears highlighting when nothing is selected
             canvas.on('selection:cleared', function() {
                 $('.specSpan').each(function() {
                     $(this).css('background-color','#f5f5f5');
@@ -470,6 +485,7 @@ var specsExercise = (function () {
             
             canvas.forEachObject(function (obj) {
                 
+                //highlights and scrolls to the description box for the selected object
                 obj.on('selected', function() {
                     var thing;
                     if(obj.item(1).name === undefined)
@@ -512,13 +528,14 @@ var specsExercise = (function () {
                         controller.updateSpec(questionNumber, obj.item(0).name, obj.getBoundingRectWidth()/2, point.x, point.y);
                     else
                         controller.updateImple(questionNumber, obj.item(1).name, point.x, point.y);
+                    //checks answer if dynamic enabled
                     if(dynamicChecking)
-                        controller.checkAnswer(questionNumber);
+                        controller.checkAnswer(questionNumber, false);
                     
                     sortObjects();
                 });
                 
-                //sort the objects' z-indices based on radius - larger in back, smaller in front
+                //insertion sort the objects' z-indices based on radius - larger in back, smaller in front
                 function sortObjects() {
                     var objectsSortedRadius = [];
                     var objectsUnsorted = canvas.getObjects();
@@ -552,30 +569,38 @@ var specsExercise = (function () {
     function setup(div) {
         var displayHints = div.attr('data-hint') === 'on';
         var dynamicChecking = div.attr('data-dynamic') === 'on';
+        
         var model = Model();
         var controller = Controller(model);
         
         var navTabs = $('<ul class="nav nav-tabs"></ul>');
         var tabContent = $('<div id="my-tab-content" class="tab-content"></div>');
-        var views = [];
         
-        //displays first test question on page load
-        for(j in testJSON) {
-            var qNum = parseInt(j)+1;
-            var newTab = $('<li><a id="showQuestion'+j+'" data-toggle="tab" href="#question'+j+'tab"><strong>Question '+qNum+'</strong></a></li>');
-            navTabs.append(newTab);
-            var newDiv = $('<div class="tab-pane" id="question'+j+'tab"></div>');
-            if(j === '0') {
-                newTab.addClass('active');
-                newDiv.addClass('active');
+        /***********************
+        *
+        *   AJAX
+        *   loads the questions from the server
+        ***********************/
+        $.ajax({url: "http://localhost:8000", data: {want: 'load'}}).done(function(response) {
+            var bigJSON = jQuery.parseJSON(response);
+            
+            //preloads all questions, displays first test question on page load
+            for(j in bigJSON) {
+                var qNum = parseInt(j)+1;
+                var newTab = $('<li><a id="showQuestion'+j+'" data-toggle="tab" href="#question'+j+'tab"><strong>Question '+qNum+'</strong></a></li>');
+                navTabs.append(newTab);
+                var newDiv = $('<div class="tab-pane" id="question'+j+'tab"></div>');
+                if(j === '0') {
+                    newTab.addClass('active');
+                    newDiv.addClass('active');
+                }
+                tabContent.append(newDiv);
+                var newView = View(j, newDiv, model, controller, displayHints, dynamicChecking);
             }
-            tabContent.append(newDiv);
-            var newView = View(j, newDiv, model, controller, displayHints, dynamicChecking);
-            views.push(newView);
-        }
-        div.addClass('tabbable tabs-left');
-        div.append(navTabs, tabContent);
-        controller.loadQuestions(testJSON);
+            div.addClass('tabbable tabs-left');
+            div.append(navTabs, tabContent);
+            controller.loadQuestions(bigJSON);
+        });
     }
     
     return {setup: setup};
@@ -607,7 +632,7 @@ function checkOverlap(spec1, spec2) {
     var r2 = spec2.getRadius();
     var distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
     if (distance > (r1 + r2)) {
-        return '';
+        return spec1.getName()+' is disjoint from '+spec2.getName();
     }
     else if (distance <= Math.abs(r1 - r2)) {
         if(r1 > r2)
