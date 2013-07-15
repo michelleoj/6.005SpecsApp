@@ -3,8 +3,8 @@
         <title>6.005 Specs Exercise</title>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
-        <script src="http://web.mit.edu/lu16j/www/boots/bootstrap/js/bootstrap.min.js"></script>
         <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
+        <script src="http://web.mit.edu/lu16j/www/boots/bootstrap/js/bootstrap.min.js"></script>
         <link href="http://web.mit.edu/lu16j/www/boots/bootstrap/css/bootstrap.min.css" rel="stylesheet">
         <link href="http://web.mit.edu/lu16j/www/boots/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">
         <script src="fabric.js"></script>
@@ -13,20 +13,29 @@
         <link href="6005specs.css" rel="stylesheet">
     </head>
     <body>
-        <h2 class="text-center">6.005 Specs Exercise</h2>
-        <h5 class="text-center">Developers: Michelle Johnson, Richard Lu</h5>
         <div class="modal hide fade" aria-hidden="true">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h6 class="text-center">Circles are specs, triangles are implementations. Analyze each spec, and resize/drag them around so that they intersect or contain each other appropriately. Drag the implementations onto the spec regions that they fulfill.</h6>
+                <h2 class="text-center">6.005 Specs Exercise</h2>
+                <h5 class="text-center">Developers: Michelle Johnson, Richard Lu</h5>
+            </div>
+            <div class="modal-body">
+                <ul>
+                    <li>Circles are specs, triangles are implementations.</li>
+                    <li>Analyze each spec, and resize/drag them around so that they intersect or contain each other appropriately.</li>
+                    <li>Drag the implementations onto the spec regions that they fulfill.</li>
+                </ul>
             </div>
         </div>
+        
+        <div class="specs" data-hint="on" data-dynamic="off"></div>
+        
+        <!--SHOWS THE DESCRIPTION BOX ON FIRST LOAD-->
         <script>
             if(localStorage.specAppLoadedOnce === undefined) {
                 $('.modal').modal('show');
                 localStorage.specAppLoadedOnce = 1;
             }
         </script>
-        <div class="specs" data-hint="on" data-dynamic="off"></div>
     </body>
 </html>

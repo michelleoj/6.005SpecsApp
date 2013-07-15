@@ -188,6 +188,7 @@ var specsExercise = (function () {
         'checked' when finished. 
         
         @questionNumber a positive int
+        @canvasJSON a JSON string or false
         */
         function checkAnswer(questionNumber, canvasJSON) {
             var currentSpecs = [specObjects[questionNumber],impleObjects[questionNumber]];
@@ -218,7 +219,7 @@ var specsExercise = (function () {
             
             /***********************
             *
-            *   TESTING AJAX
+            *   AJAX
             *   stores a student's answer and image on the server
             ***********************/
             if(canvasJSON !== false) {
@@ -262,44 +263,36 @@ var specsExercise = (function () {
         
         @bigJSON the JSON string 
         */
-        function loadQuestions() {
-            /***********************
-            *
-            *   TESTING AJAX
-            *   loads the questions from the server
-            ***********************/
-            $.ajax({url: "http://localhost:8000", data: {want: 'load'}}).done(function(response) {
-                var bigJSON = jQuery.parseJSON(response);
-                for(j in bigJSON) {
-                    var jsonThing = bigJSON[j];
-                    var specs = [], imples = [], relationships = [];
-                    for(i in jsonThing['imples']) {
-                        var currentImple = jsonThing['imples'][i];
-                        imples.push(new Imple(i, currentImple['text'], currentImple['color']));
-                    }
-                    for(s in jsonThing['specs']) {
-                        var currentSpec = jsonThing['specs'][s];
-                        specs.push(new Spec(s, currentSpec['text'], currentSpec['color']));
-                        for(o in currentSpec['contains']) {
-                            var relString = s+' contains '+currentSpec['contains'][o];
-                            if(relationships.indexOf(relString) < 0)
-                                relationships.push(relString);
-                        }
-                        for(o in currentSpec['intersects']) {
-                            var relString = s+' intersects '+currentSpec['intersects'][o];
-                            var relStringRev = currentSpec['intersects'][o]+' intersects '+s;
-                            if(relationships.indexOf(relString) < 0 & relationships.indexOf(relStringRev) < 0)
-                                relationships.push(relString);
-                        }
-                    }
-                    //tells model to fire the 'loaded' message
-                    model.loadQuestion(specs, imples, relationships);
+        function loadQuestions(bigJSON) {
+            for(j in bigJSON) {
+                var jsonThing = bigJSON[j];
+                var specs = [], imples = [], relationships = [];
+                for(i in jsonThing['imples']) {
+                    var currentImple = jsonThing['imples'][i];
+                    imples.push(new Imple(i, currentImple['text'], currentImple['color']));
                 }
-            });
+                for(s in jsonThing['specs']) {
+                    var currentSpec = jsonThing['specs'][s];
+                    specs.push(new Spec(s, currentSpec['text'], currentSpec['color']));
+                    for(o in currentSpec['contains']) {
+                        var relString = s+' contains '+currentSpec['contains'][o];
+                        if(relationships.indexOf(relString) < 0)
+                            relationships.push(relString);
+                    }
+                    for(o in currentSpec['intersects']) {
+                        var relString = s+' intersects '+currentSpec['intersects'][o];
+                        var relStringRev = currentSpec['intersects'][o]+' intersects '+s;
+                        if(relationships.indexOf(relString) < 0 & relationships.indexOf(relStringRev) < 0)
+                            relationships.push(relString);
+                    }
+                }
+                //tells model to fire the 'loaded' message
+                model.loadQuestion(specs, imples, relationships);
+            }
         }
         
         /*
-        Triggers the event that loads the next Spec object 
+        Triggers the event that loads or updates a Spec object 
         
         @questionNumber a positive int 
         @name a string
@@ -312,11 +305,10 @@ var specsExercise = (function () {
         }
         
         /*
-        Triggers the event that loads the next Imple object 
+        Triggers the event that loads or updates a Imple object 
         
         @questionNumber a positive int 
         @name a string
-        @radius a positive int
         @x a positive int
         @y a positive int
         */
@@ -328,6 +320,7 @@ var specsExercise = (function () {
         Triggers the check answer event
         
         @questionNumber a positive int
+        @canvasJSON a JSON string or false
         */
         function checkAnswer(questionNumber, canvasJSON) {
             model.checkAnswer(questionNumber, canvasJSON);
@@ -353,21 +346,22 @@ var specsExercise = (function () {
         var checkButton = $('<button class="btn">Submit</button>');
         checkDisplay.append(checkButton);
         checkButton.on('click', function () {
-            //sends checked answer and JSON of canvas image to server
+            //submits checked answer and image to server, disables button
             controller.checkAnswer(questionNumber, JSON.stringify(canvas.toJSON()));
             $(this).prop('disabled', true);
         });
         if(dynamicChecking)
             checkButton.prop('disabled', true);
         
-        var correctDisplay = $('<div class="alert alert-success">Correct!</div>');
-        var wrongDisplay = $('<div class="alert alert-error">Wrong.</div>');
+        //initializes the feedback displays
+        var correctDisplay = $('<div class="notify correct">Correct!</div>');
+        var wrongDisplay = $('<div class="notify wrong">Wrong.</div>');
         checkDisplay.append(correctDisplay, wrongDisplay);
         
         /*
-        Displays the feedback and hints based on the user's answers
+        Displays feedback based on the user's answers
         
-        @data the user's test questions containing both the specs and the implementation objects
+        @data contains a boolean for correctness and a string for feedback
         */
         function displayAnswer(data) {
             var correct = data[0];
@@ -396,14 +390,14 @@ var specsExercise = (function () {
                 displayAnswer([data[1], data[2]]);
         });
         
+        //populates the view for the current question
         div.append(vennDiagrams, specsDisplay, checkDisplay);
         
         /*
         Initializes and displays the spec objects onto the canvas and keeps track of the canvas' state. 
-        Initializes the feedback displays. Also displays the descriptions of the specs
-        and implementation.
+        Also displays the descriptions of the specs and implementation.
         
-        @data the user's test questions containing both the specs and the implementation objects
+        @data contains both the specs and the implementation objects for the current question
         */
         function loadSpecs(data) {
             canvas = new fabric.Canvas('c'+questionNumber);
@@ -412,12 +406,11 @@ var specsExercise = (function () {
             canvas.on('after:render', function() {
                 canvas.calcOffset();
             });
-
             $('#showQuestion'+questionNumber).on('click', function (evt) {
                 setTimeout(function(){canvas.renderAll();},500);
             });
             
-            //feedback
+            //initially hides the feedback views
             correctDisplay.hide();
             wrongDisplay.hide();
             
@@ -429,8 +422,8 @@ var specsExercise = (function () {
             var usedX = 0, usedY = 0;
             for(s in specs) {
                 var text1 = new fabric.Text(specs[s].getName(), {fontFamily: 'sans-serif',fontSize: 20, top:-10});
-                var circleWidth = Math.round(Math.max(70,text1.width));
-                var circle1 = new fabric.Circle({radius:circleWidth,fill: specs[s].getColor(),name: specs[s].getName()});
+                var circleRadius = Math.round(Math.max(70,text1.width/2+10));
+                var circle1 = new fabric.Circle({radius:circleRadius,fill: specs[s].getColor(),name: specs[s].getName()});
                 var group1 = new fabric.Group([circle1, text1]);
                 
                 /***************************************************************/
@@ -456,8 +449,11 @@ var specsExercise = (function () {
             for(i in imples) {
                 var impleCircle = new fabric.Triangle({width:15,height:15,fill: imples[i].getColor(),name: imples[i].getName()});
                 var impleText = new fabric.Text(imples[i].getName(), {fontFamily: 'sans-serif',fontSize:15, top:12});
-//                var impleGroup = new fabric.Group([impleText, impleCircle], {top:randomInteger(418)+20, left:randomInteger(418)+20});
                 var impleGroup = new fabric.Group([impleText, impleCircle]);
+                
+                /***************************************************************/
+                //ATTEMPT AT ORDERING THEM SO THEY DON'T INITIALLY OVERLAP
+                /***************************************************************/
                 impleGroup.set({top:canvas.height-usedY-impleGroup.height, left:canvas.width-usedX-impleGroup.width});
                 usedX += impleGroup.width*2;
                 if(usedX > canvas.width-impleGroup.width*2) {
@@ -478,8 +474,9 @@ var specsExercise = (function () {
                 return false;
             };
             
-            //brings selected object forward
+            //keeps handles on top of the objects
             canvas.controlsAboveOverlay = true;
+            //clears highlighting when nothing is selected
             canvas.on('selection:cleared', function() {
                 $('.specSpan').each(function() {
                     $(this).css('background-color','#f5f5f5');
@@ -487,8 +484,8 @@ var specsExercise = (function () {
             });
             
             canvas.forEachObject(function (obj) {
-//                obj.set({perPixelTargetFind: true});
                 
+                //highlights and scrolls to the description box for the selected object
                 obj.on('selected', function() {
                     var thing;
                     if(obj.item(1).name === undefined)
@@ -513,12 +510,10 @@ var specsExercise = (function () {
                 
                 //update the object's radius and position
                 var point = obj.getCenterPoint();
-                if(obj.item(1).name === undefined) {
+                if(obj.item(1).name === undefined)
                     controller.updateSpec(questionNumber, obj.item(0).name, obj.getBoundingRectWidth()/2, point.x, point.y);
-                }
-                else {
+                else
                     controller.updateImple(questionNumber, obj.item(1).name, point.x, point.y);
-                }
                 
                 //dynamically update position and radius, animate bounce if dragged out of bounds
                 obj.on('modified', function () {
@@ -533,13 +528,14 @@ var specsExercise = (function () {
                         controller.updateSpec(questionNumber, obj.item(0).name, obj.getBoundingRectWidth()/2, point.x, point.y);
                     else
                         controller.updateImple(questionNumber, obj.item(1).name, point.x, point.y);
+                    //checks answer if dynamic enabled
                     if(dynamicChecking)
                         controller.checkAnswer(questionNumber, false);
                     
                     sortObjects();
                 });
                 
-                //sort the objects' z-indices based on radius - larger in back, smaller in front
+                //insertion sort the objects' z-indices based on radius - larger in back, smaller in front
                 function sortObjects() {
                     var objectsSortedRadius = [];
                     var objectsUnsorted = canvas.getObjects();
@@ -573,30 +569,38 @@ var specsExercise = (function () {
     function setup(div) {
         var displayHints = div.attr('data-hint') === 'on';
         var dynamicChecking = div.attr('data-dynamic') === 'on';
+        
         var model = Model();
         var controller = Controller(model);
         
         var navTabs = $('<ul class="nav nav-tabs"></ul>');
         var tabContent = $('<div id="my-tab-content" class="tab-content"></div>');
-        var views = [];
         
-        //displays first test question on page load
-        for(j in testJSON) {
-            var qNum = parseInt(j)+1;
-            var newTab = $('<li><a id="showQuestion'+j+'" data-toggle="tab" href="#question'+j+'tab"><strong>Question '+qNum+'</strong></a></li>');
-            navTabs.append(newTab);
-            var newDiv = $('<div class="tab-pane" id="question'+j+'tab"></div>');
-            if(j === '0') {
-                newTab.addClass('active');
-                newDiv.addClass('active');
+        /***********************
+        *
+        *   AJAX
+        *   loads the questions from the server
+        ***********************/
+        $.ajax({url: "http://localhost:8000", data: {want: 'load'}}).done(function(response) {
+            var bigJSON = jQuery.parseJSON(response);
+            
+            //preloads all questions, displays first test question on page load
+            for(j in bigJSON) {
+                var qNum = parseInt(j)+1;
+                var newTab = $('<li><a id="showQuestion'+j+'" data-toggle="tab" href="#question'+j+'tab"><strong>Question '+qNum+'</strong></a></li>');
+                navTabs.append(newTab);
+                var newDiv = $('<div class="tab-pane" id="question'+j+'tab"></div>');
+                if(j === '0') {
+                    newTab.addClass('active');
+                    newDiv.addClass('active');
+                }
+                tabContent.append(newDiv);
+                var newView = View(j, newDiv, model, controller, displayHints, dynamicChecking);
             }
-            tabContent.append(newDiv);
-            var newView = View(j, newDiv, model, controller, displayHints, dynamicChecking);
-            views.push(newView);
-        }
-        div.addClass('tabbable tabs-left');
-        div.append(navTabs, tabContent);
-        controller.loadQuestions();
+            div.addClass('tabbable tabs-left');
+            div.append(navTabs, tabContent);
+            controller.loadQuestions(bigJSON);
+        });
     }
     
     return {setup: setup};

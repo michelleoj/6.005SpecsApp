@@ -5,20 +5,73 @@
         <script src="http://code.highcharts.com/highcharts.js"></script>
         <script src="http://code.highcharts.com/modules/exporting.js"></script>
         <script src="fabric.js"></script>
+        <script src="http://web.mit.edu/lu16j/www/boots/bootstrap/js/bootstrap.min.js"></script>
+        <link href="http://web.mit.edu/lu16j/www/boots/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     </head>
     <body>
         <input class="questionNumber">
-        <div class="chart" style="float:left"></div>
-        <div class="image" style="width:450px;height:450px;border:1px solid gray;float:left">
-            <canvas id="canvas" height=450 width=450></canvas>
+        <div class="tabbable tabs-left">
+            <ul class="nav nav-tabs">
+                <li class="active"><a href="#basicfunctions" data-toggle="tab">Get Started</a></li>
+                <li><a href="#creatingmachine" data-toggle="tab">Creating</a></li>
+                <li><a href="#advancedfeatures" data-toggle="tab">Saving</a></li>
+                <li><a href="#embeddingsm" data-toggle="tab">Embedding</a></li>
+                <li><a href="#credits" data-toggle="tab">Credits</a></li>
+            </ul>
+            <div class="chart" style="float:left"></div>
+            <div class="image" style="width:450px;height:450px;border:1px solid gray;float:left">
+                <canvas id="canvas" height=450 width=450></canvas>
+            </div>
         </div>
         <script>
+            var canvas = new fabric.Canvas('canvas');
+            var chart = $('.chart');
+            chart.highcharts({
+                chart: {
+                    plotBackgroundColor: null,
+                    plotBorderWidth: null,
+                    plotShadow: false,
+                    height: 450,
+                    width: 600
+                },
+                title: {
+                    text: 'Distribution of student answers'
+                },
+                tooltip: {
+                    headerFormat: '',
+                    pointFormat: '<b>{point.percentage:.1f} %</b>'
+                },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true,
+                        dataLabels: {
+                            enabled: true,
+                            format: '<b>{point.y}</b>'
+                        }
+                    }
+                },
+                series: [{
+                    type: 'pie',
+                    name: 'Percentage',
+                    id: 'pie',
+                    data: [],
+                    animation: false,
+                    point: {
+                        events: {
+                            mouseOver: function(event) {
+                                this.select();
+                                canvas.clear();
+                                canvas.loadFromJSON(this.image);
+                            }
+                        }
+                    }
+                }]
+            });
             /***********************
             *
-            *   TESTING AJAX
+            *   AJAX
             *   grabs the stored answers data from the server
             ***********************/
-            var canvas = new fabric.Canvas('canvas');
             $('.questionNumber').on('keyup', function(evt) {
                 //on enter
                 if(evt.which === 13) {
@@ -42,47 +95,7 @@
                             index++;
                         }
                         //make pie chart
-                        var chart = $('.chart');
-                        chart.highcharts({
-                            chart: {
-                                plotBackgroundColor: null,
-                                plotBorderWidth: null,
-                                plotShadow: false,
-                                height: 450,
-                                width: 600
-                            },
-                            title: {
-                                text: 'Distribution of student answers'
-                            },
-                            tooltip: {
-                                headerFormat: '',
-                                pointFormat: '<b>{point.percentage:.1f} %</b>'
-                            },
-                            plotOptions: {
-                                pie: {
-                                    allowPointSelect: true,
-                                    dataLabels: {
-                                        enabled: true,
-                                        format: '<b>{point.y}</b>'
-                                    }
-                                }
-                            },
-                            series: [{
-                                type: 'pie',
-                                name: 'Percentage',
-                                data: dataAnswers,
-                                animation: false,
-                                point: {
-                                    events: {
-                                        mouseOver: function(event) {
-                                            this.select();
-                                            canvas.clear();
-                                            canvas.loadFromJSON(this.image);
-                                        }
-                                    }
-                                }
-                            }]
-                        });
+                        chart.highcharts().get('pie').setData(dataAnswers);
                     });
                 }
             });
