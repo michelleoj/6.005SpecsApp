@@ -4,29 +4,27 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
         <script src="http://code.highcharts.com/highcharts.js"></script>
         <script src="http://code.highcharts.com/modules/exporting.js"></script>
+        <script src="fabric.js"></script>
+        <script src="http://web.mit.edu/lu16j/www/boots/bootstrap/js/bootstrap.min.js"></script>
+        <link href="http://web.mit.edu/lu16j/www/boots/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     </head>
     <body>
-        <div class="chart" style="float:left"></div>
-        <div class="image" style="width:450px;height:450px;border:1px solid gray;float:left"></div>
+        <input class="questionNumber">
+        <div class="tabbable tabs-left">
+            <ul class="nav nav-tabs">
+                <li class="active"><a href="#basicfunctions" data-toggle="tab">Get Started</a></li>
+                <li><a href="#creatingmachine" data-toggle="tab">Creating</a></li>
+                <li><a href="#advancedfeatures" data-toggle="tab">Saving</a></li>
+                <li><a href="#embeddingsm" data-toggle="tab">Embedding</a></li>
+                <li><a href="#credits" data-toggle="tab">Credits</a></li>
+            </ul>
+            <div class="chart" style="float:left"></div>
+            <div class="image" style="width:450px;height:450px;border:1px solid gray;float:left">
+                <canvas id="canvas" height=450 width=450></canvas>
+            </div>
+        </div>
         <script>
-            var studentAnswers = [
-                [["findFirst intersects findLast", "findFirst inside findAll", "findFirst contains findIndex", "findLast inside findAll", "findAll contains findIndex"],5,true],
-                [["findFirst intersects findLast"],13,false],
-                [["findFirst intersects findLast", "findFirst inside findAll", "findLast inside findAll"],3,false],
-                [["findFirst intersects findLast", "findFirst intersects findAll", "findFirst contains findIndex", "findLast intersects findAll"],34,false]
-            ];
-            var dataAnswers = [];
-            for(s in studentAnswers) {
-                dataAnswers.push({});
-//                dataAnswers[s]['name'] = String(studentAnswers[s][0]);
-                dataAnswers[s]['y'] = studentAnswers[s][1];
-                dataAnswers[s]['image'] = '<img src="answer'+s+'.png"></img>';
-                if(studentAnswers[s][2]) {
-                    $('.image').html('<img src="answer'+s+'.png"></img>');
-                    dataAnswers[s]['sliced'] = true;
-                    dataAnswers[s]['selected'] = true;
-                }
-            }
+            var canvas = new fabric.Canvas('canvas');
             var chart = $('.chart');
             chart.highcharts({
                 chart: {
@@ -55,16 +53,51 @@
                 series: [{
                     type: 'pie',
                     name: 'Percentage',
-                    data: dataAnswers,
+                    id: 'pie',
+                    data: [],
+                    animation: false,
                     point: {
                         events: {
                             mouseOver: function(event) {
                                 this.select();
-                                $('.image').html(this.image);
+                                canvas.clear();
+                                canvas.loadFromJSON(this.image);
                             }
                         }
                     }
                 }]
+            });
+            /***********************
+            *
+            *   AJAX
+            *   grabs the stored answers data from the server
+            ***********************/
+            $('.questionNumber').on('keyup', function(evt) {
+                //on enter
+                if(evt.which === 13) {
+                    $.ajax({url: "http://localhost:8000", data: {want: 'answers', question: $('.questionNumber').val()}}).done(function(response) {
+                        //parse the array of answers
+                        var studentAnswers = jQuery.parseJSON(response);
+                        //data for graph
+                        var dataAnswers = [];
+                        var index = 0;
+                        canvas.clear();
+                        for(s in studentAnswers) {
+                            dataAnswers.push({});
+                            dataAnswers[index]['y'] = studentAnswers[s]['y'];
+                            //THIS IS A JSON STRING FOR FABRIC.CANVAS TO LOAD
+                            dataAnswers[index]['image'] = studentAnswers[s]['image'];
+                            if(studentAnswers[s]['correct']) {
+                                canvas.loadFromJSON(studentAnswers[s]['image']);
+                                dataAnswers[index]['sliced'] = true;
+                                dataAnswers[index]['selected'] = true;
+                            }
+                            index++;
+                        }
+                        //make pie chart
+                        chart.highcharts().get('pie').setData(dataAnswers);
+                    });
+                }
             });
         </script>
     </body>
