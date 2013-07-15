@@ -464,7 +464,7 @@ var specsExercise = (function () {
                 impleGroup.hasControls = false;
                 canvas.add(impleGroup);
                 
-                var newPre = $('<pre class="prettyprint specSpan" data-id="'+imples[i].getName()+'">'+imples[i].getSpec()+'</pre>');
+                var newPre = $('<pre class="prettyprint specSpan imple" data-id="'+imples[i].getName()+'">'+imples[i].getSpec()+'</pre>');
                 specsDisplay.append(newPre);
                 newPre.css('border-color', impleCircle.fill.replace(',1)',',0.3)'));
             }
@@ -476,30 +476,65 @@ var specsExercise = (function () {
             
             //keeps handles on top of the objects
             canvas.controlsAboveOverlay = true;
-            //clears highlighting when nothing is selected
+            //clears implementation highlighting when nothing is selected
             canvas.on('selection:cleared', function() {
                 $('.specSpan').each(function() {
-                    $(this).css('background-color','#f5f5f5');
+                    if($(this).hasClass('imple')) {
+                        $(this).css({'background-color':'#f5f5f5', 'height': '20px'});
+                    }
                 });
             });
             
-            canvas.forEachObject(function (obj) {
+            //highlights each specification currently moused over
+            canvas.on('mouse:move', function(evt) {
+                var specsOver = getSpecsOver(evt.e.offsetX, evt.e.offsetY);
+                var scrollTop = 1000;
                 
-                //highlights and scrolls to the description box for the selected object
-                obj.on('selected', function() {
-                    var thing;
-                    if(obj.item(1).name === undefined)
-                        thing = obj.item(0);
-                    else
-                        thing = obj.item(1);
-                    var specName = thing.name;
-                    $('.specSpan').each(function() {
-                        if($(this).attr('data-id') === specName) {
-                            specsDisplay.scrollTop($(this).position().top);
-                            $(this).css('background-color', thing.fill.replace(',1)',',0.3)'));
+                $('.specSpan').each(function() {
+                    if(!$(this).hasClass('imple')) {
+                        if(specsOver.indexOf($(this).attr('data-id')) >= 0) {
+                            if($(this).position().top < scrollTop)
+                                scrollTop = $(this).position().top;
+                            $(this).css('background-color', $(this).css('border-color'));
                         }
                         else
                             $(this).css('background-color', '#f5f5f5');
+                    }
+                });
+                
+                if(scrollTop !== 0)
+                    specsDisplay.scrollTop(scrollTop);
+            });
+            function getSpecsOver(x, y) {
+                var specsOver = [];
+                canvas.forEachObject(function (obj) {
+                    if(obj.item(1).name === undefined) {
+                        var point = obj.getCenterPoint();
+                        if(Math.sqrt(Math.pow(point.x-x,2)+Math.pow(point.y-y,2)) < obj.getBoundingRectWidth()/2)
+                            specsOver.push(obj.item(0).name);
+                    }
+                });
+                return specsOver;
+            }
+            
+            canvas.forEachObject(function (obj) {
+                
+                //highlights and scrolls to the description box for the selected implementation
+                obj.on('selected', function() {
+                    var thing = obj.item(1);
+                    var specName = thing.name;
+                    $('.specSpan').each(function() {
+                        if($(this).hasClass('imple')) {
+                            $(this).css('height', '20px');
+                            if($(this).attr('data-id') === specName) {
+                                specsDisplay.scrollTop($(this).position().top);
+                                $(this).css('background-color', thing.fill.replace(',1)',',0.3)'));
+                                if($(this).hasClass('imple'))
+                                    $(this).css('height', 'auto');
+                            }
+                            else
+                                $(this).css('background-color', '#f5f5f5');
+                        }
                     });
                 });
                 
@@ -581,9 +616,7 @@ var specsExercise = (function () {
         *   AJAX
         *   loads the questions from the server
         ***********************/
-        $.ajax({url: "http://localhost:8000", data: {want: 'load'}}).done(function(response) {
-            var bigJSON = jQuery.parseJSON(response);
-            
+        function loadFromJSON(bigJSON) {
             //preloads all questions, displays first test question on page load
             for(j in bigJSON) {
                 var qNum = parseInt(j)+1;
@@ -600,7 +633,18 @@ var specsExercise = (function () {
             div.addClass('tabbable tabs-left');
             div.append(navTabs, tabContent);
             controller.loadQuestions(bigJSON);
-        });
+            
+            prettyPrint();
+        }
+        
+        if(dynamicChecking) {
+            loadFromJSON(questions);
+        }
+        else {
+            $.ajax({url: "http://localhost:8000", data: {want: 'load'}}).done(function(response) {
+                loadFromJSON(jQuery.parseJSON(response));
+            });
+        }
     }
     
     return {setup: setup};
