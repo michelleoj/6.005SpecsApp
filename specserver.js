@@ -38,9 +38,9 @@ function addAnswer(answer, questionNumber, correct, image, ip) {
         else
             studentAnswers[questionNumber][answer]['correct'] = false;
         alreadyAnswered[questionNumber].push(ip);
-        return "added answer "+answer+" to question "+questionNumber;
+        return ip+" added answer "+answer+" to question "+questionNumber;
     }
-    return "already answered, request denied";
+    return ip+" has already answered question "+questionNumber+", request denied";
 }
 
 var closed = false;
@@ -82,5 +82,5 @@ my_http.createServer(function(request,response){
     }
     response.write(answer);
     response.end();  
-}).listen(8000);  
+}).listen(8080);  
 sys.puts("Server Running on 8000");

@@ -1,4 +1,4 @@
-var serverURL = 'http://localhost:8000';
+var serverURL = 'http://localhost:8080';
 
 var canvas = new fabric.Canvas('canvas');
 var chart = $('.chart');
