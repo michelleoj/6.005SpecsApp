@@ -72,10 +72,15 @@
 
 .specs pre {
     border-radius: 0;
-    width: 310;
-    padding: 10px 25px 10px 10px;
+    width: 305;
+    padding: 5px 25px 5px 10px;
     margin: 0;
-    border-width: 1px 1px 1px 5px;
+    border-width: 1px 1px 1px 10px;
+}
+
+.specs .imple {
+    overflow: hidden;
+    height: 20px;
 }
 
 .specs .label {

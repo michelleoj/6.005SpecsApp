@@ -9,21 +9,14 @@
         <link href="http://web.mit.edu/lu16j/www/boots/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     </head>
     <body>
-        <input class="questionNumber">
         <div class="tabbable tabs-left">
-            <ul class="nav nav-tabs">
-                <li class="active"><a href="#basicfunctions" data-toggle="tab">Get Started</a></li>
-                <li><a href="#creatingmachine" data-toggle="tab">Creating</a></li>
-                <li><a href="#advancedfeatures" data-toggle="tab">Saving</a></li>
-                <li><a href="#embeddingsm" data-toggle="tab">Embedding</a></li>
-                <li><a href="#credits" data-toggle="tab">Credits</a></li>
-            </ul>
+            <ul class="nav nav-tabs"></ul>
             <div class="chart" style="float:left"></div>
             <div class="image" style="width:450px;height:450px;border:1px solid gray;float:left">
                 <canvas id="canvas" height=450 width=450></canvas>
             </div>
         </div>
-        <script>
+        <script>            
             var canvas = new fabric.Canvas('canvas');
             var chart = $('.chart');
             chart.highcharts({
@@ -58,8 +51,7 @@
                     animation: false,
                     point: {
                         events: {
-                            mouseOver: function(event) {
-                                this.select();
+                            select: function(event) {
                                 canvas.clear();
                                 canvas.loadFromJSON(this.image);
                             }
@@ -72,30 +64,38 @@
             *   AJAX
             *   grabs the stored answers data from the server
             ***********************/
-            $('.questionNumber').on('keyup', function(evt) {
-                //on enter
-                if(evt.which === 13) {
-                    $.ajax({url: "http://localhost:8000", data: {want: 'answers', question: $('.questionNumber').val()}}).done(function(response) {
-                        //parse the array of answers
-                        var studentAnswers = jQuery.parseJSON(response);
-                        //data for graph
-                        var dataAnswers = [];
-                        var index = 0;
-                        canvas.clear();
-                        for(s in studentAnswers) {
-                            dataAnswers.push({});
-                            dataAnswers[index]['y'] = studentAnswers[s]['y'];
-                            //THIS IS A JSON STRING FOR FABRIC.CANVAS TO LOAD
-                            dataAnswers[index]['image'] = studentAnswers[s]['image'];
-                            if(studentAnswers[s]['correct']) {
-                                canvas.loadFromJSON(studentAnswers[s]['image']);
-                                dataAnswers[index]['sliced'] = true;
-                                dataAnswers[index]['selected'] = true;
-                            }
-                            index++;
+            function showAnswers(qNum) {
+                $.ajax({url: serverURL, data: {want: 'answers', question: qNum}}).done(function(response) {
+                    //parse the array of answers
+                    var studentAnswers = jQuery.parseJSON(response);
+                    //data for graph
+                    var dataAnswers = [];
+                    var index = 0;
+                    canvas.clear();
+                    for(s in studentAnswers) {
+                        dataAnswers.push({});
+                        dataAnswers[index]['y'] = studentAnswers[s]['y'];
+                        //THIS IS A JSON STRING FOR FABRIC.CANVAS TO LOAD
+                        dataAnswers[index]['image'] = studentAnswers[s]['image'];
+                        if(studentAnswers[s]['correct']) {
+                            canvas.loadFromJSON(studentAnswers[s]['image']);
+                            dataAnswers[index]['sliced'] = true;
+                            dataAnswers[index]['selected'] = true;
                         }
-                        //make pie chart
-                        chart.highcharts().get('pie').setData(dataAnswers);
+                        index++;
+                    }
+                    //make pie chart
+                    chart.highcharts().get('pie').setData(dataAnswers);
+                });
+            }
+            
+            $.ajax({url: "http://localhost:8000", data: {want: 'load'}}).done(function(response) {
+                for(j in jQuery.parseJSON(response)) {
+                    var qNum = parseInt(j)+1;
+                    var newTab = $('<li id="'+j+'"><a href="#">Question '+qNum+'</a></li>');
+                    $('.nav').append(newTab);
+                    newTab.on('click', function () {
+                        showAnswers($(this).attr('id'));
                     });
                 }
             });
