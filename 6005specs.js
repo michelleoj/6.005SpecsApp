@@ -1,5 +1,5 @@
 //URL for server
-var serverURL = 'http://localhost:8000';
+var serverURL = 'http://18.189.76.15:8000';
 
 // Objects
 
@@ -188,7 +188,8 @@ var specsExercise = (function () {
         /*
         Checks all the relationships between the objects based on current question.
         Displays hint if there is an incorrect relationship. Sends the trigger message
-        'checked' when finished. 
+        'checked' when finished, along with the question number, the correctness boolean,
+        and a string representing all the currently claimed relationships as "hint".
         
         @questionNumber a positive int
         @canvasJSON a JSON string or false
@@ -200,16 +201,20 @@ var specsExercise = (function () {
             var allRels = [];
             var statusRels = []
             for(i in currentSpecs[0]) {
+                //compares each spec to every other spec and every implementation
                 for(k in currentSpecs) {
                     for(j in currentSpecs[k]) {
                         if(i !== j) {
+                            //checks the relationship both ways
                             var newRel = checkOverlap(currentSpecs[0][i], currentSpecs[k][j]);
                             var newRelRev = checkOverlap(currentSpecs[k][j], currentSpecs[0][i]);
+                            //does not count disjoint as a relationship
                             if(newRel.indexOf('is disjoint from') < 0 & allRels.indexOf(newRel) < 0 & allRels.indexOf(newRelRev) < 0) {
                                 if(currentRels.indexOf(newRel) < 0 & currentRels.indexOf(newRelRev) < 0)
                                     correct = false;
                                 allRels.push(newRel);
                             }
+                            //keeps track of all relationships, including disjoints, for hinting
                             if(statusRels.indexOf(newRel) < 0 & statusRels.indexOf(newRelRev) < 0)
                                 statusRels.push(newRel);
                         }
@@ -346,10 +351,12 @@ var specsExercise = (function () {
         
         var canvas;
         
+        /*
+        Submit button is disabled after first submit, or always in dynamic checking mode
+        */
         var checkButton = $('<button class="btn">Submit</button>');
         checkDisplay.append(checkButton);
         checkButton.on('click', function () {
-            //submits checked answer and image to server, disables button
             controller.checkAnswer(questionNumber, JSON.stringify(canvas.toJSON()));
             $(this).prop('disabled', true);
         });
@@ -424,6 +431,9 @@ var specsExercise = (function () {
             specsDisplay.append('<pre class="label">&#9679; SPECIFICATIONS</pre>');
             var usedX = 0, usedY = 0;
             for(s in specs) {
+                /*
+                Creates a circle for each spec, minimum radius 70
+                */
                 var text1 = new fabric.Text(specs[s].getName(), {fontFamily: 'sans-serif',fontSize: 20, top:-10});
                 var circleRadius = Math.round(Math.max(70,text1.width/2+10));
                 var circle1 = new fabric.Circle({radius:circleRadius,fill: specs[s].getColor(),name: specs[s].getName()});
@@ -432,15 +442,23 @@ var specsExercise = (function () {
                 /***************************************************************/
                 //ATTEMPT AT ORDERING THEM SO THEY DON'T INITIALLY OVERLAP
                 /***************************************************************/
+                
+                //5 pixels of padding for top and left (top and left measured from center point)
                 group1.set({top:usedY+group1.height/2+5, left:usedX+group1.width/2+5});
+                //increment the taken-up-horizontal-space
                 usedX += group1.width+5;
+                //if too much horizontal space is taken
                 if(usedX > canvas.width-group1.width-10) {
+                    //increment taken-up-vertical-space
                     usedX = 0;
                     usedY += group1.height+5;
                 }
                 
                 canvas.add(group1);
                 
+                /*
+                Populates the right-side display
+                */
                 var newPre = $('<pre class="prettyprint specSpan" data-id="'+specs[s].getName()+'">'+specs[s].getSpec()+'</pre>');
                 specsDisplay.append(newPre);
                 newPre.css('border-color', circle1.fill);
@@ -508,6 +526,9 @@ var specsExercise = (function () {
                 if(scrollTop !== 0)
                     specsDisplay.scrollTop(scrollTop);
             });
+            /*
+            Returns the IDs of all spec circles containing the coordinate x, y
+            */
             function getSpecsOver(x, y) {
                 var specsOver = [];
                 canvas.forEachObject(function (obj) {
@@ -520,6 +541,9 @@ var specsExercise = (function () {
                 return specsOver;
             }
             
+            /*
+            Define properties of every canvas object
+            */
             canvas.forEachObject(function (obj) {
                 
                 //highlights and scrolls to the description box for the selected implementation
@@ -566,7 +590,8 @@ var specsExercise = (function () {
                         controller.updateSpec(questionNumber, obj.item(0).name, obj.getBoundingRectWidth()/2, point.x, point.y);
                     else
                         controller.updateImple(questionNumber, obj.item(1).name, point.x, point.y);
-                    //checks answer if dynamic enabled
+                    
+                    //checks answer if dynamic mode enabled
                     if(dynamicChecking)
                         controller.checkAnswer(questionNumber, false);
                     
@@ -575,23 +600,30 @@ var specsExercise = (function () {
                 
                 //insertion sort the objects' z-indices based on radius - larger in back, smaller in front
                 function sortObjects() {
+                    //objects sorted by radius in ascending order
                     var objectsSortedRadius = [];
+                    //unsorted objects
                     var objectsUnsorted = canvas.getObjects();
                     for(o in objectsUnsorted) {
+                        //push first object
                         if(objectsSortedRadius.length === 0) {
                             objectsSortedRadius.push(objectsUnsorted[o]);
                         }
                         else {
+                            //index of the last sorted object
                             var i = objectsSortedRadius.length-1;
+                            //decrements past bigger bigger objects
                             while(objectsSortedRadius[i].getBoundingRectWidth() > objectsUnsorted[o].getBoundingRectWidth()
                                   & i > 0)
                                 i--;
+                            //inserts object appropriately
                             if(objectsSortedRadius[i].getBoundingRectWidth() > objectsUnsorted[o].getBoundingRectWidth())
                                 objectsSortedRadius.splice(i,0,objectsUnsorted[o]);
                             else
                                 objectsSortedRadius.splice(i+1,0,objectsUnsorted[o]);
                         }
                     }
+                    //sends each item in sorted list to back
                     for(o in objectsSortedRadius)
                         objectsSortedRadius[o].sendToBack();
                 }
@@ -617,7 +649,8 @@ var specsExercise = (function () {
         /***********************
         *
         *   AJAX
-        *   loads the questions from the server
+        *   loads the questions from the server in submit (quiz) mode
+        *   or from file in dynamic (homework) mode
         ***********************/
         function loadFromJSON(bigJSON) {
             //preloads all questions, displays first test question on page load
@@ -637,6 +670,7 @@ var specsExercise = (function () {
             div.append(navTabs, tabContent);
             controller.loadQuestions(bigJSON);
             
+            //syntax highlighting
             prettyPrint();
         }
         
@@ -693,6 +727,9 @@ function checkOverlap(spec1, spec2) {
 }
 
 $(document).ready(function () {
+    /*
+    Loads description box on first load
+    */
     if(localStorage.specAppLoadedOnce === undefined) {
         $('.modal').modal('show');
         localStorage.specAppLoadedOnce = 1;
