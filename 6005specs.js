@@ -610,10 +610,10 @@ var specsExercise = (function () {
                 
                 //bolds each relationship containing the moused over specs/imples
                 $('.checkDisplay .wrong ul li').each(function() {
-                    $(this).html($(this).html().replace('<strong>','').replace('</strong>',''));
+                    $(this).css('font-weight','normal');
                     for(s in specsOver) {
                         if($(this).html().indexOf(' '+specsOver[s]+' ') >= 0)
-                            $(this).html('<strong>'+$(this).html()+'</strong>');
+                            $(this).css('font-weight','bold');
                     }
                 });
                 
