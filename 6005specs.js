@@ -1,5 +1,5 @@
 //URL for server
-var serverURL = 'http://18.189.76.15:8000';
+var serverURL = 'http://18.189.22.178:8080';
 
 // Objects
 
@@ -739,4 +739,3 @@ $(document).ready(function () {
         specsExercise.setup($(this));
     });
 });
-
