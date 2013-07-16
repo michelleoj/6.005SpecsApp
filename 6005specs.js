@@ -1,3 +1,6 @@
+//URL for server
+var serverURL = 'http://localhost:8000';
+
 // Objects
 
 //so that it can do inheritance
@@ -223,7 +226,7 @@ var specsExercise = (function () {
             *   stores a student's answer and image on the server
             ***********************/
             if(canvasJSON !== false) {
-                $.ajax({url: 'http://localhost:8000',
+                $.ajax({url: serverURL,
                         data: {want: 'answer',
                                question: String(questionNumber),
                                answer: JSON.stringify(allRels),
@@ -641,7 +644,7 @@ var specsExercise = (function () {
             loadFromJSON(questions);
         }
         else {
-            $.ajax({url: "http://localhost:8000", data: {want: 'load'}}).done(function(response) {
+            $.ajax({url: serverURL, data: {want: 'load'}}).done(function(response) {
                 loadFromJSON(jQuery.parseJSON(response));
             });
         }
@@ -690,6 +693,11 @@ function checkOverlap(spec1, spec2) {
 }
 
 $(document).ready(function () {
+    if(localStorage.specAppLoadedOnce === undefined) {
+        $('.modal').modal('show');
+        localStorage.specAppLoadedOnce = 1;
+    }
+    
     $('.specs').each(function () {
         specsExercise.setup($(this));
     });

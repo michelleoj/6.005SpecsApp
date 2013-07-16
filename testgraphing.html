@@ -65,7 +65,7 @@
             *   grabs the stored answers data from the server
             ***********************/
             function showAnswers(qNum) {
-                $.ajax({url: "http://localhost:8000", data: {want: 'answers', question: qNum}}).done(function(response) {
+                $.ajax({url: serverURL, data: {want: 'answers', question: qNum}}).done(function(response) {
                     //parse the array of answers
                     var studentAnswers = jQuery.parseJSON(response);
                     //data for graph
