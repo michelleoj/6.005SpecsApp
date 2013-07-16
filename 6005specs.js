@@ -383,16 +383,18 @@ var specsExercise = (function () {
             */
             var hint = '';
             for(s in statusRels) {
-                var newHintItem = ' '+statusRels[s]+' ';
-                for(i in imples) {
-                    if(newHintItem.indexOf(' '+imples[i].getName()+' ') >= 0) {
-                        if(newHintItem.indexOf(' contains ') < 0)
-                            newHintItem = ' '+imples[i].getName()+' does not satisfy '+statusRels[s].split(' ')[0]+' ';
-                        else
-                            newHintItem = ' '+imples[i].getName()+' satisfies '+statusRels[s].split(' ')[0]+' ';
+                if(statusRels[s].indexOf('disjoint') < 0) {
+                    var newHintItem = ' '+statusRels[s]+' ';
+                    for(i in imples) {
+                        if(newHintItem.indexOf(' '+imples[i].getName()+' ') >= 0) {
+                            if(newHintItem.indexOf(' contains ') < 0)
+                                newHintItem = ' '+imples[i].getName()+' does not satisfy '+statusRels[s].split(' ')[0]+' ';
+                            else
+                                newHintItem = ' '+imples[i].getName()+' satisfies '+statusRels[s].split(' ')[0]+' ';
+                        }
                     }
+                    hint += '<li>'+newHintItem+'</li>';
                 }
-                hint += '<li>'+newHintItem+'</li>';
             }
             hint = '<ul class="unstyled">'+hint+'</ul>';
             
@@ -589,11 +591,11 @@ var specsExercise = (function () {
                 });
             });
             
-            //highlights each specification currently moused over
             canvas.on('mouse:move', function(evt) {
                 var specsOver = getSpecsOver(evt.e.offsetX, evt.e.offsetY);
                 var scrollTop = 1000;
                 
+                //highlights each specification currently moused over
                 $('.specSpan').each(function() {
                     if(!$(this).hasClass('imple')) {
                         if(specsOver.indexOf($(this).attr('data-id')) >= 0) {
@@ -605,11 +607,13 @@ var specsExercise = (function () {
                             $(this).css('background-color', '#f5f5f5');
                     }
                 });
+                
+                //bolds each relationship containing the moused over specs/imples
                 $('.checkDisplay .wrong ul li').each(function() {
-                    $(this).hide();
+                    $(this).html($(this).html().replace('<strong>','').replace('</strong>',''));
                     for(s in specsOver) {
                         if($(this).html().indexOf(' '+specsOver[s]+' ') >= 0)
-                            $(this).show();
+                            $(this).html('<strong>'+$(this).html()+'</strong>');
                     }
                 });
                 
