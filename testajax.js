@@ -72,8 +72,14 @@ my_http.createServer(function(request,response){
         closed = true;
     else if(data.want === 'open')
         closed = false;
-    else if(data.want === 'reset')
-        studentAnswers = [{},{},{},{}];
+    else if(data.want === 'reset') {
+        studentAnswers = [];
+        alreadyAnswered = [];
+        for(q in questions) {
+            studentAnswers.push({});
+            alreadyAnswered.push([]);
+        }
+    }
     response.write(answer);
     response.end();  
 }).listen(8000);  

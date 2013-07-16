@@ -16,7 +16,11 @@
                 <canvas id="canvas" height=450 width=450></canvas>
             </div>
         </div>
-        <script>            
+        <button class="btn btn-warning" id="closeBtn">Close</button>
+        <button class="btn btn-info" id="resetBtn">Reset</button>
+        <script>
+            var serverURL = 'http://localhost:8000';
+            
             var canvas = new fabric.Canvas('canvas');
             var chart = $('.chart');
             chart.highcharts({
@@ -89,7 +93,7 @@
                 });
             }
             
-            $.ajax({url: "http://localhost:8000", data: {want: 'load'}}).done(function(response) {
+            $.ajax({url: serverURL, data: {want: 'load'}}).done(function(response) {
                 for(j in jQuery.parseJSON(response)) {
                     var qNum = parseInt(j)+1;
                     var newTab = $('<li id="'+j+'"><a href="#">Question '+qNum+'</a></li>');
@@ -98,6 +102,26 @@
                         showAnswers($(this).attr('id'));
                     });
                 }
+            });
+            
+            $('#closeBtn').on('click', function () {
+                if($('#closeBtn').html() === 'Close') {
+                    $.ajax({url: serverURL, data: {want: 'close'}}).done(function(response) {
+                        $('#closeBtn').html('Reopen');
+                    });
+                }
+                else {
+                    $.ajax({url: serverURL, data: {want: 'open'}}).done(function(response) {
+                        $('#closeBtn').html('Close');
+                    });
+                }
+            });
+            
+            $('#resetBtn').on('click', function reset() {
+                $.ajax({url: serverURL, data: {want: 'reset'}}).done(function(response) {
+                    chart.highcharts().get('pie').setData([]);
+                    canvas.clear();
+                });
             });
         </script>
     </body>
