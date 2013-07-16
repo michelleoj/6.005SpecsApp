@@ -49,6 +49,11 @@
     overflow-y: auto;
 }
 
+.specs .checkDisplay li {
+    width: 50%;
+    float: left;
+}
+
 .specs .checkDisplay .correct {
     color: #468847;
     background-color: #dff0d8;

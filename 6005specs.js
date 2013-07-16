@@ -1,5 +1,5 @@
 //URL for server
-var serverURL = 'http://18.189.76.15:8000';
+var serverURL = 'http://18.189.22.178:8080';
 
 // Objects
 
@@ -223,7 +223,7 @@ var specsExercise = (function () {
             }
             if(allRels.length !== currentRels.length)
                 correct = false;
-            handler.trigger('checked', [questionNumber, correct, JSON.stringify(statusRels)]);
+            handler.trigger('checked', [questionNumber, correct, statusRels]);
             
             /***********************
             *
@@ -349,7 +349,7 @@ var specsExercise = (function () {
         var specsDisplay = $('<div class="specsDisplay narrow tall"></div>');
         var checkDisplay = $('<div class="checkDisplay wide short"></div>');
         
-        var canvas;
+        var canvas, specs, imples;
         
         /*
         Submit button is disabled after first submit, or always in dynamic checking mode
@@ -375,8 +375,32 @@ var specsExercise = (function () {
         */
         function displayAnswer(data) {
             var correct = data[0];
-            var hint = data[1];
+            var statusRels = data[1];
+            
+            /*
+            Formats the relationship strings as an unstyled, horizontally-breaking list
+            with better formatting for implementation relationships
+            */
+            var hint = '';
+            for(s in statusRels) {
+                if(statusRels[s].indexOf('disjoint') < 0) {
+                    var newHintItem = ' '+statusRels[s]+' ';
+                    for(i in imples) {
+                        if(newHintItem.indexOf(' '+imples[i].getName()+' ') >= 0) {
+                            if(newHintItem.indexOf(' contains ') < 0)
+                                newHintItem = ' '+imples[i].getName()+' does not satisfy '+statusRels[s].split(' ')[0]+' ';
+                            else
+                                newHintItem = ' '+imples[i].getName()+' satisfies '+statusRels[s].split(' ')[0]+' ';
+                        }
+                    }
+                    hint += '<li>'+newHintItem+'</li>';
+                }
+            }
+            hint = '<ul class="unstyled">'+hint+'</ul>';
+            
             if(correct) {
+                if(displayHints)
+                    correctDisplay.html(hint);
                 correctDisplay.show();
                 wrongDisplay.hide();
                 $('#showQuestion'+questionNumber).css({'background-color':'#dff0d8'});
@@ -388,6 +412,72 @@ var specsExercise = (function () {
                 correctDisplay.hide();
                 $('#showQuestion'+questionNumber).css('background-color', '#f2dede');
             }
+        }
+        
+        /*
+        Returns the IDs of all spec circles containing the coordinate x, y
+        */
+        function getSpecsOver(x, y) {
+            var specsOver = [];
+            canvas.forEachObject(function (obj) {
+                var point = obj.getCenterPoint();
+                if(Math.sqrt(Math.pow(point.x-x,2)+Math.pow(point.y-y,2)) < obj.getBoundingRectWidth()/2) {
+                    if(obj.item(1).name === undefined)
+                            specsOver.push(obj.item(0).name);
+                    else
+                            specsOver.push(obj.item(1).name);
+                }
+            });
+            return specsOver;
+        }
+        
+        /*
+        Expands the currently selected implementation box
+        */
+        function expandImple(name) {
+            $('.specSpan').each(function() {
+                if($(this).hasClass('imple')) {
+                    $(this).css('height', '20px');
+                    if($(this).attr('data-id') === name) {
+                        specsDisplay.scrollTop($(this).position().top);
+                        $(this).css('background-color', $(this).css('border-color').replace(',1)',',0.3)'));
+                        if($(this).hasClass('imple'))
+                            $(this).css('height', 'auto');
+                    }
+                    else
+                        $(this).css('background-color', '#f5f5f5');
+                }
+            });
+        }
+                
+        //insertion sort the objects' z-indices based on radius - larger in back, smaller in front
+        function sortObjects() {
+            //objects sorted by radius in ascending order
+            var objectsSortedRadius = [];
+            //unsorted objects
+            var objectsUnsorted = canvas.getObjects();
+            for(o in objectsUnsorted) {
+                //push first object
+                if(objectsSortedRadius.length === 0) {
+                    objectsSortedRadius.push(objectsUnsorted[o]);
+                }
+                else {
+                    //index of the last sorted object
+                    var i = objectsSortedRadius.length-1;
+                    //decrements past bigger bigger objects
+                    while(objectsSortedRadius[i].getBoundingRectWidth() > objectsUnsorted[o].getBoundingRectWidth()
+                          & i > 0)
+                        i--;
+                    //inserts object appropriately
+                    if(objectsSortedRadius[i].getBoundingRectWidth() > objectsUnsorted[o].getBoundingRectWidth())
+                        objectsSortedRadius.splice(i,0,objectsUnsorted[o]);
+                    else
+                        objectsSortedRadius.splice(i+1,0,objectsUnsorted[o]);
+                }
+            }
+            //sends each item in sorted list to back
+            for(o in objectsSortedRadius)
+                objectsSortedRadius[o].sendToBack();
         }
         
         //event listeners for when pages has loaded and when 'check' button has been clicked.
@@ -424,8 +514,8 @@ var specsExercise = (function () {
             correctDisplay.hide();
             wrongDisplay.hide();
             
-            var specs = data[0];
-            var imples = data[1];
+            specs = data[0];
+            imples = data[1];
             
             //create canvas objects
             specsDisplay.append('<pre class="label">&#9679; SPECIFICATIONS</pre>');
@@ -490,11 +580,6 @@ var specsExercise = (function () {
                 newPre.css('border-color', impleCircle.fill.replace(',1)',',0.3)'));
             }
             
-            //disable right click on canvas
-            vennDiagrams[0].oncontextmenu = function () {
-                return false;
-            };
-            
             //keeps handles on top of the objects
             canvas.controlsAboveOverlay = true;
             //clears implementation highlighting when nothing is selected
@@ -506,11 +591,11 @@ var specsExercise = (function () {
                 });
             });
             
-            //highlights each specification currently moused over
             canvas.on('mouse:move', function(evt) {
                 var specsOver = getSpecsOver(evt.e.offsetX, evt.e.offsetY);
                 var scrollTop = 1000;
                 
+                //highlights each specification currently moused over
                 $('.specSpan').each(function() {
                     if(!$(this).hasClass('imple')) {
                         if(specsOver.indexOf($(this).attr('data-id')) >= 0) {
@@ -523,23 +608,28 @@ var specsExercise = (function () {
                     }
                 });
                 
-                if(scrollTop !== 0)
-                    specsDisplay.scrollTop(scrollTop);
-            });
-            /*
-            Returns the IDs of all spec circles containing the coordinate x, y
-            */
-            function getSpecsOver(x, y) {
-                var specsOver = [];
-                canvas.forEachObject(function (obj) {
-                    if(obj.item(1).name === undefined) {
-                        var point = obj.getCenterPoint();
-                        if(Math.sqrt(Math.pow(point.x-x,2)+Math.pow(point.y-y,2)) < obj.getBoundingRectWidth()/2)
-                            specsOver.push(obj.item(0).name);
+                //bolds each relationship containing the moused over specs/imples
+                $('.checkDisplay .wrong ul li').each(function() {
+                    $(this).html($(this).html().replace('<strong>','').replace('</strong>',''));
+                    for(s in specsOver) {
+                        if($(this).html().indexOf(' '+specsOver[s]+' ') >= 0)
+                            $(this).html('<strong>'+$(this).html()+'</strong>');
                     }
                 });
-                return specsOver;
-            }
+                
+                if(scrollTop !== 0 & scrollTop !== 1000)
+                    specsDisplay.scrollTop(scrollTop);
+            });
+            
+            //disable right click on canvas
+            vennDiagrams[0].oncontextmenu = function () {
+                return false;
+            };
+            
+            //expands each imple box on click
+            $('.specSpan').on('click', function () {
+                expandImple($(this).attr('data-id'));
+            });
             
             /*
             Define properties of every canvas object
@@ -548,21 +638,7 @@ var specsExercise = (function () {
                 
                 //highlights and scrolls to the description box for the selected implementation
                 obj.on('selected', function() {
-                    var thing = obj.item(1);
-                    var specName = thing.name;
-                    $('.specSpan').each(function() {
-                        if($(this).hasClass('imple')) {
-                            $(this).css('height', '20px');
-                            if($(this).attr('data-id') === specName) {
-                                specsDisplay.scrollTop($(this).position().top);
-                                $(this).css('background-color', thing.fill.replace(',1)',',0.3)'));
-                                if($(this).hasClass('imple'))
-                                    $(this).css('height', 'auto');
-                            }
-                            else
-                                $(this).css('background-color', '#f5f5f5');
-                        }
-                    });
+                    expandImple(obj.item(1).name);
                 });
                 
                 //only uniform scaling allowed, no rotation
@@ -597,36 +673,6 @@ var specsExercise = (function () {
                     
                     sortObjects();
                 });
-                
-                //insertion sort the objects' z-indices based on radius - larger in back, smaller in front
-                function sortObjects() {
-                    //objects sorted by radius in ascending order
-                    var objectsSortedRadius = [];
-                    //unsorted objects
-                    var objectsUnsorted = canvas.getObjects();
-                    for(o in objectsUnsorted) {
-                        //push first object
-                        if(objectsSortedRadius.length === 0) {
-                            objectsSortedRadius.push(objectsUnsorted[o]);
-                        }
-                        else {
-                            //index of the last sorted object
-                            var i = objectsSortedRadius.length-1;
-                            //decrements past bigger bigger objects
-                            while(objectsSortedRadius[i].getBoundingRectWidth() > objectsUnsorted[o].getBoundingRectWidth()
-                                  & i > 0)
-                                i--;
-                            //inserts object appropriately
-                            if(objectsSortedRadius[i].getBoundingRectWidth() > objectsUnsorted[o].getBoundingRectWidth())
-                                objectsSortedRadius.splice(i,0,objectsUnsorted[o]);
-                            else
-                                objectsSortedRadius.splice(i+1,0,objectsUnsorted[o]);
-                        }
-                    }
-                    //sends each item in sorted list to back
-                    for(o in objectsSortedRadius)
-                        objectsSortedRadius[o].sendToBack();
-                }
             });
         }
     }
@@ -739,4 +785,3 @@ $(document).ready(function () {
         specsExercise.setup($(this));
     });
 });
-
