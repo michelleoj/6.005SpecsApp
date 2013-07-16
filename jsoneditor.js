@@ -1,4 +1,38 @@
+function Question(text, number, htmlObject) {
+    this.text = text;
+    this.number = number;
+    this.htmlobj = htmlObject;
+}
+
+Question.prototype = {
+    constructor: Question,
+    getText: function() {
+        return this.text;
+    },
+    setText: function(t) {
+        this.text = t;
+    },
+    getNumber: function() {
+        return this.number;
+    },
+    setNumber: function(n) {
+        this.number = n;
+    },
+    getObj: function() {
+        return this.htmlobj;
+    },
+    setObj: function(obj) {
+        this.htmlobj = obj;
+    }
+    
+}
+
+
 $(document).ready(function() {
+    var numOfOps = 0;
+    var questions = []; //array of all the question objects
+    var selectBox = $("select");
+    
     
     function submit() {
         var colors = {
@@ -65,8 +99,40 @@ $(document).ready(function() {
             }
         });
         
-        $("#result").text(JSON.stringify(jsonThing));
+        var JSONstring = JSON.stringify(jsonThing);
+        numOfOps++;
+        $("#result").append("<p class='unselected' id='" + numOfOps + "'>" + JSONstring + "</p>");
+        questions.push(new Question(JSONstring, numOfOps))
+
+        var str = String(questions[numOfOps-1].getNumber());
+        var optionEl = "<option>" + str + "</option>";
+        questions[numOfOps-1].setObj(optionEl);
+        selectBox.append(questions[numOfOps-1].getObj());
         
+        $("select option").each(function() {
+            $(this).on('click', function() {
+                console.log('clicked');
+                var questionsNum = $(this).text();
+                if ($("#" + questionsNum).hasClass("unselected")) {
+                    console.log("here");
+                    $("#" + questionsNum).removeClass("unselected");
+                    $("#" + questionsNum).addClass("selected");
+                }
+                else {
+                    console.log('sup');
+                    $("#" + questionsNum).removeClass("selected");
+                    $("#" + questionsNum).addClass("unselected");
+                }
+
+            }); 
+        });
+        
+    }
+    
+    function searchQuestions(qnum) {
+        console.log($("p " + qnum));
+        $
+
     }
     
     var counterspec = 1; 
@@ -123,17 +189,7 @@ $(document).ready(function() {
     });
     $("button[type='submit']").on('click', submit);
     
-    $("#testbutton").on('click', searchQuestions);
     
-    function searchQuestions() {
-        var txtbox = $('#test');
-        var jsonbox = document.getElementById("result");
-        var str = txtbox.val();
-        var strlength = str.length;
-        var start = $('#result').val().indexOf(str);
-        var end = $('#result').val().indexOf(str)+strlength;
-        jsonbox.setSelectionRange(start, end);
-
-    }
+    
         
 });
