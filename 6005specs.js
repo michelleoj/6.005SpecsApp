@@ -503,9 +503,6 @@ var specsExercise = (function () {
             specs = data[0];
             imples = data[1];
             
-            //defaults to touch if touchscreen detected - disabled for now
-            fabric.isTouchSupported = false;
-            
             canvas = new fabric.Canvas('c'+questionNumber);
             
             //repositions the canvas objects after bringing it into view
@@ -802,12 +799,41 @@ $(document).ready(function () {
     /*
     Loads description box on first load
     */
-    if(localStorage.specAppLoadedOnce === undefined) {
-        $('.specModal').modal('show');
-        localStorage.specAppLoadedOnce = 1;
+    function load(touchEnable, storeChoice) {
+        if(localStorage.specsAppTouchEnabled !== undefined)
+            fabric.isTouchSupported = localStorage.specsAppTouchEnabled === "true";
+        else
+            fabric.isTouchSupported = touchEnable;
+        if(storeChoice)
+            localStorage.specsAppTouchEnabled = touchEnable;
+        if(localStorage.specAppLoadedOnce === undefined) {
+            $('.specModal').modal('show');
+            localStorage.specAppLoadedOnce = 1;
+        }
+        specsExercise.setup($('.specs'));
     }
     
-    $('.specs').each(function () {
-        specsExercise.setup($(this));
-    });
+    /*
+    Checks for touch input
+    */
+    if(fabric.isTouchSupported & localStorage.specsAppTouchEnabled === undefined) {
+        bootbox.dialog("Touchscreen detected. Use app with touch?", [{
+            "label" : "Yes",
+            "class" : "btn-primary",
+            "callback": function () { load(true, false); }
+        }, {
+            "label" : "No",
+            "callback": function () { load(false, false); }
+        }, {
+            "label" : "Always",
+            "class" : "btn-success",
+            "callback": function () { load(true, true); }
+        }, {
+            "label" : "Never",
+            "class" : "btn-warning",
+            "callback": function () { load(false, true); }
+        }]);
+    }
+    else
+        load(false, false);
 });
