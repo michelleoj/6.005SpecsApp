@@ -1,28 +1,23 @@
 .specs {
-    width: 944px;
+    width: 802px;
     height: 602px;
     margin: auto auto;
     overflow: hidden;
 }
 
 .specs .nav-tabs {
-    margin-right: 2;
-    width: 138;
-    height: 602px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    direction: rtl;
+    margin-bottom: 1px;
 }
 
 .specs .tab-pane {
     border: 1px solid gray;
-    height: 600px;
+    height: 550px;
     width: 800px;
 }
 
 .specs .vennDiagrams {
     height: 450px;
-    width: 450px;
+    width: 400px;
 }
 
 .specs .checkDisplay {
@@ -68,7 +63,7 @@
     border-left: 1px solid lightgray;
     overflow-y: auto;
     overflow-x: hidden;
-    height: 600px;
+    height: 550px;
     width: 349px;
     position: relative;
     top: -450px;
@@ -83,7 +78,7 @@
     border-width: 1px 1px 1px 10px;
 }
 
-.specs .imple {
+.specs .impleSpan {
     overflow: hidden;
     height: 20px;
 }
