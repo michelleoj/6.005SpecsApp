@@ -1,7 +1,8 @@
-function Question(text, number, htmlObject) {
+function Question(text, number, htmlObject, htmlForm) {
     this.text = text;
     this.number = number;
     this.htmlobj = htmlObject;
+    this.htmlForm = htmlForm;
 }
 
 Question.prototype = {
@@ -23,8 +24,13 @@ Question.prototype = {
     },
     setObj: function(obj) {
         this.htmlobj = obj;
+    },
+    getForm: function() {
+        return this.htmlForm;
+    },
+    setForm: function(obj) {
+        this.htmlForm = obj;
     }
-    
 }
 
 
@@ -107,22 +113,26 @@ $(document).ready(function() {
 
         var str = String(questions[numOfOps-1].getNumber());
         var optionEl = "<option>" + str + "</option>";
+        var formState = $('.editableSpecImpl').clone();
+//        console.log(formState); // includes user inputs
         questions[numOfOps-1].setObj(optionEl);
-        selectBox.append(questions[numOfOps-1].getObj());
-        clicked = true;
-        
+        console.log('current count: ',numOfOps);
+        console.log('index: ', numOfOps-1);
+        console.log('questions array length: ', questions.length);
+        questions[numOfOps-1].setForm(formState);
+        selectBox.append(questions[numOfOps-1].getObj());  
         
     }
+    
     
     var counterspec = 1; 
     var counterimple = 1;
 
     function addSpec() {
-        console.log("here");
         counterspec += 1; 
         var spec = $("<div style='margin-right: 5px; margin-top: 15px;' class='spec" + counterspec +  "'>\
-                    <input class='name' style='width:78px; margin-right: 4px;' type='text' placeholder='Spec name...'>\
-                    <input class='intersects' style='width:78px; margin-right: 4px;' type='text' placeholder='Intersections'>\
+                    <input class='name' style='width:78px' type='text' placeholder='Spec name...'>\
+                    <input class='intersects' style='width:78px' type='text' placeholder='Intersections'>\
                     <input class='contains' style='width:78px' type='text' placeholder='Contains'><br>\
                     <textarea class='input-xlarge' rows='4' placeholder='Enter spec...'></textarea>\
                     <button data-spec='" +counterspec + "' class='dec btn btn-info' class='btn btn-primary'>Remove Spec</button></div>");
@@ -173,14 +183,44 @@ $(document).ready(function() {
     });
     $("button[type='submit']").on('click', submit);
     
-    $("select option").each(function() {
-            $(this).on('click', function() {
-                if (clicked) {
-                    var objName = "p"+$(this).val();
-                    var id = "#" + objName;
-                    $(id).toggleClass('highlight');
-                }
-            });
+     function highlight(num) {
+        var n = num;
+        var pObj = $('#p' + n);
+        var allPObj = $('#result p');
+        allPObj.removeClass('highlight');
+        pObj.toggleClass('highlight');
+    }
+    
+    $('#selectionBox').on('click', function() {
+        var e = document.getElementById('selectionBox');
+        var strOp = e.options[e.selectedIndex].text;
+        console.log('strop: ', strOp);
+        highlight(strOp);
+        var disabledButtons = $('.opButtons button');
+        var editbutton = $('#edit');
+        disabledButtons.removeClass('disabled');
+        editbutton.off('click');
+        editbutton.on('click', function() {
+            editSpec(parseInt(strOp-1));
         });
+    });
+    
+    
+    
+    
+    function deleteSpec(qnum) {
+        
+    }
+    
+    function editSpec(qnum) {
+//        console.log(qnum);
+        var form = questions[qnum].getForm();
+//        console.log(form.length);
+        var specImplDiv = $('.editableSpecImpl');
+        var container = $('.container');
+        specImplDiv.empty();
+        specImplDiv.append(form);
+        container.prepend(specImplDiv);
+    }
         
 });
