@@ -1,5 +1,5 @@
 //URL for server
-var serverURL = 'http://18.189.22.178:8080';
+var serverURL = 'http://18.189.23.245:8080';
 
 // Objects
 
@@ -161,10 +161,12 @@ var specsExercise = (function () {
             specObjects.push({});
             impleObjects.push({});
             var index = specObjects.length - 1;
+            
             for(s in specs)
                 specObjects[index][specs[s].getName()] = specs[s];
             for(i in imples)
                 impleObjects[index][imples[i].getName()] = imples[i];
+            
             relationships.push(rels);
             //store the relationships
             handler.trigger('loaded', [index, specs, imples]);
@@ -199,7 +201,7 @@ var specsExercise = (function () {
             var currentRels = relationships[questionNumber];
             var correct = true;
             var allRels = [];
-            var statusRels = []
+            
             for(i in currentSpecs[0]) {
                 //compares each spec to every other spec and every implementation
                 for(k in currentSpecs) {
@@ -208,22 +210,20 @@ var specsExercise = (function () {
                             //checks the relationship both ways
                             var newRel = checkOverlap(currentSpecs[0][i], currentSpecs[k][j]);
                             var newRelRev = checkOverlap(currentSpecs[k][j], currentSpecs[0][i]);
+                            
                             //does not count disjoint as a relationship
                             if(newRel.indexOf('is disjoint from') < 0 & allRels.indexOf(newRel) < 0 & allRels.indexOf(newRelRev) < 0) {
                                 if(currentRels.indexOf(newRel) < 0 & currentRels.indexOf(newRelRev) < 0)
                                     correct = false;
                                 allRels.push(newRel);
                             }
-                            //keeps track of all relationships, including disjoints, for hinting
-                            if(statusRels.indexOf(newRel) < 0 & statusRels.indexOf(newRelRev) < 0)
-                                statusRels.push(newRel);
                         }
                     }
                 }
             }
             if(allRels.length !== currentRels.length)
                 correct = false;
-            handler.trigger('checked', [questionNumber, correct, statusRels]);
+            handler.trigger('checked', [questionNumber, correct, allRels]);
             
             /***********************
             *
@@ -275,13 +275,16 @@ var specsExercise = (function () {
             for(j in bigJSON) {
                 var jsonThing = bigJSON[j];
                 var specs = [], imples = [], relationships = [];
+                
                 for(i in jsonThing['imples']) {
                     var currentImple = jsonThing['imples'][i];
                     imples.push(new Imple(i, currentImple['text'], currentImple['color']));
                 }
+                
                 for(s in jsonThing['specs']) {
                     var currentSpec = jsonThing['specs'][s];
                     specs.push(new Spec(s, currentSpec['text'], currentSpec['color']));
+                    
                     for(o in currentSpec['contains']) {
                         var relString = s+' contains '+currentSpec['contains'][o];
                         if(relationships.indexOf(relString) < 0)
@@ -345,7 +348,7 @@ var specsExercise = (function () {
     function View(questionNumber, div, model, controller, displayHints, dynamicChecking) {
         
         //initializing the html objects
-        var vennDiagrams = $('<div class="vennDiagrams wide tall"><canvas id="c'+questionNumber+'"height="448" width="448"></canvas></div>');
+        var vennDiagrams = $('<div class="vennDiagrams wide tall"><canvas id="c'+questionNumber+'"height="398" width="448"></canvas></div>');
         var specsDisplay = $('<div class="specsDisplay narrow tall"></div>');
         var checkDisplay = $('<div class="checkDisplay wide short"></div>');
         
@@ -369,32 +372,30 @@ var specsExercise = (function () {
         checkDisplay.append(correctDisplay, wrongDisplay);
         
         /*
-        Displays feedback based on the user's answers
+        Displays feedback based on the user's answers, changes color of checkDisplay and the current tab
         
         @data contains a boolean for correctness and a string for feedback
         */
         function displayAnswer(data) {
             var correct = data[0];
-            var statusRels = data[1];
+            var allRels = data[1];
             
             /*
             Formats the relationship strings as an unstyled, horizontally-breaking list
             with better formatting for implementation relationships
             */
             var hint = '';
-            for(s in statusRels) {
-                if(statusRels[s].indexOf('disjoint') < 0) {
-                    var newHintItem = ' '+statusRels[s]+' ';
-                    for(i in imples) {
-                        if(newHintItem.indexOf(' '+imples[i].getName()+' ') >= 0) {
-                            if(newHintItem.indexOf(' contains ') < 0)
-                                newHintItem = ' '+imples[i].getName()+' does not satisfy '+statusRels[s].split(' ')[0]+' ';
-                            else
-                                newHintItem = ' '+imples[i].getName()+' satisfies '+statusRels[s].split(' ')[0]+' ';
-                        }
-                    }
-                    hint += '<li>'+newHintItem+'</li>';
+            for(s in allRels) {
+                
+                //adds whitespacing for easier parsing
+                var newHintItem = ' '+allRels[s]+' ';
+                for(i in imples) {
+                    
+                    //parses for name surrounded by whitespace, in case of 'index' finding 'indexA'
+                    if(newHintItem.indexOf(' '+imples[i].getName()+' ') >= 0)
+                        newHintItem = ' '+imples[i].getName()+' satisfies '+allRels[s].split(' ')[0]+' ';
                 }
+                hint += '<li>'+newHintItem+'</li>';
             }
             hint = '<ul class="unstyled">'+hint+'</ul>';
             
@@ -403,79 +404,77 @@ var specsExercise = (function () {
                     correctDisplay.html(hint);
                 correctDisplay.show();
                 wrongDisplay.hide();
-                $('#showQuestion'+questionNumber).css({'background-color':'#dff0d8'});
+                $('#showQuestion'+questionNumber).find('a').css({'background-color':'#dff0d8'});
             }
             else {
                 if(displayHints)
                     wrongDisplay.html(hint);
                 wrongDisplay.show();
                 correctDisplay.hide();
-                $('#showQuestion'+questionNumber).css('background-color', '#f2dede');
+                $('#showQuestion'+questionNumber).find('a').css('background-color', '#f2dede');
             }
         }
         
         /*
-        Returns the IDs of all spec circles containing the coordinate x, y
+        Returns the IDs of all objects containing the coordinate x, y
         */
-        function getSpecsOver(x, y) {
-            var specsOver = [];
+        function getObjsOver(x, y) {
+            var objsOver = [];
             canvas.forEachObject(function (obj) {
                 var point = obj.getCenterPoint();
                 if(Math.sqrt(Math.pow(point.x-x,2)+Math.pow(point.y-y,2)) < obj.getBoundingRectWidth()/2) {
                     if(obj.item(1).name === undefined)
-                            specsOver.push(obj.item(0).name);
+                            objsOver.push(obj.item(0).name);
                     else
-                            specsOver.push(obj.item(1).name);
+                            objsOver.push(obj.item(1).name);
                 }
             });
-            return specsOver;
+            return objsOver;
         }
         
         /*
-        Expands the currently selected implementation box
+        Highlights selected object's description box
+        Expands if it is an implementation
         */
-        function expandImple(name) {
-            $('.specSpan').each(function() {
-                if($(this).hasClass('imple')) {
+        function highlightBox(name) {
+            $('.objSpan').each(function() {
+                if($(this).hasClass('impleSpan'))
                     $(this).css('height', '20px');
-                    if($(this).attr('data-id') === name) {
-                        specsDisplay.scrollTop($(this).position().top);
-                        $(this).css('background-color', $(this).css('border-color').replace(',1)',',0.3)'));
-                        if($(this).hasClass('imple'))
-                            $(this).css('height', 'auto');
-                    }
-                    else
-                        $(this).css('background-color', '#f5f5f5');
+                if($(this).attr('data-id') === name) {
+                    if($(this).hasClass('impleSpan'))
+                        $(this).css('height', 'auto');
+                    specsDisplay.scrollTop($(this).position().top);
+                    $(this).css('background-color', $(this).css('border-color').replace(',1)',',0.3)'));
                 }
+                else
+                    $(this).css('background-color', '#f5f5f5');
             });
         }
                 
         //insertion sort the objects' z-indices based on radius - larger in back, smaller in front
         function sortObjects() {
-            //objects sorted by radius in ascending order
+            
             var objectsSortedRadius = [];
-            //unsorted objects
             var objectsUnsorted = canvas.getObjects();
+            
             for(o in objectsUnsorted) {
                 //push first object
                 if(objectsSortedRadius.length === 0) {
                     objectsSortedRadius.push(objectsUnsorted[o]);
                 }
                 else {
-                    //index of the last sorted object
                     var i = objectsSortedRadius.length-1;
-                    //decrements past bigger bigger objects
                     while(objectsSortedRadius[i].getBoundingRectWidth() > objectsUnsorted[o].getBoundingRectWidth()
                           & i > 0)
                         i--;
-                    //inserts object appropriately
+                    
                     if(objectsSortedRadius[i].getBoundingRectWidth() > objectsUnsorted[o].getBoundingRectWidth())
                         objectsSortedRadius.splice(i,0,objectsUnsorted[o]);
                     else
                         objectsSortedRadius.splice(i+1,0,objectsUnsorted[o]);
                 }
             }
-            //sends each item in sorted list to back
+            
             for(o in objectsSortedRadius)
                 objectsSortedRadius[o].sendToBack();
         }
@@ -500,13 +499,17 @@ var specsExercise = (function () {
         @data contains both the specs and the implementation objects for the current question
         */
         function loadSpecs(data) {
+            
+            specs = data[0];
+            imples = data[1];
+            
             canvas = new fabric.Canvas('c'+questionNumber);
             
-            //repositions the canvas after bringing it into view
+            //repositions the canvas objects after bringing it into view
             canvas.on('after:render', function() {
                 canvas.calcOffset();
             });
-            $('#showQuestion'+questionNumber).on('click', function (evt) {
+            $('#showQuestion'+questionNumber).find('a').on('click', function (evt) {
                 setTimeout(function(){canvas.renderAll();},500);
             });
             
@@ -514,32 +517,32 @@ var specsExercise = (function () {
             correctDisplay.hide();
             wrongDisplay.hide();
             
-            specs = data[0];
-            imples = data[1];
+            /*
+            Populate canvas and side display
+            */
             
-            //create canvas objects
+            //TABLE HEADER
             specsDisplay.append('<pre class="label">&#9679; SPECIFICATIONS</pre>');
+            
+            //positioning
             var usedX = 0, usedY = 0;
             for(s in specs) {
                 /*
                 Creates a circle for each spec, minimum radius 70
                 */
-                var text1 = new fabric.Text(specs[s].getName(), {fontFamily: 'sans-serif',fontSize: 20, top:-10});
+                var text1 = new fabric.Text(specs[s].getName(),
+                                            {fontFamily: 'sans-serif',
+                                             fontSize: 20, top:-10});
                 var circleRadius = Math.round(Math.max(70,text1.width/2+10));
-                var circle1 = new fabric.Circle({radius:circleRadius,fill: specs[s].getColor(),name: specs[s].getName()});
+                var circle1 = new fabric.Circle({radius:circleRadius,
+                                                 fill: specs[s].getColor(),
+                                                 name: specs[s].getName()});
                 var group1 = new fabric.Group([circle1, text1]);
                 
-                /***************************************************************/
-                //ATTEMPT AT ORDERING THEM SO THEY DON'T INITIALLY OVERLAP
-                /***************************************************************/
                 
-                //5 pixels of padding for top and left (top and left measured from center point)
                 group1.set({top:usedY+group1.height/2+5, left:usedX+group1.width/2+5});
-                //increment the taken-up-horizontal-space
                 usedX += group1.width+5;
-                //if too much horizontal space is taken
                 if(usedX > canvas.width-group1.width-10) {
-                    //increment taken-up-vertical-space
                     usedX = 0;
                     usedY += group1.height+5;
                 }
@@ -549,22 +552,25 @@ var specsExercise = (function () {
                 /*
                 Populates the right-side display
                 */
-                var newPre = $('<pre class="prettyprint specSpan" data-id="'+specs[s].getName()+'">'+specs[s].getSpec()+'</pre>');
+                var newPre = $('<pre class="prettyprint objSpan specSpan" data-id="'+specs[s].getName()+'">'+specs[s].getSpec()+'</pre>');
                 specsDisplay.append(newPre);
                 newPre.css('border-color', circle1.fill);
             }
             
+            //REPEAT FOR IMPLEMENTATIONS
             specsDisplay.append('<pre class="label">&#9650; IMPLEMENTATIONS</pre>');
             usedX = 0;
             usedY = 0;
             for(i in imples) {
-                var impleCircle = new fabric.Triangle({width:15,height:15,fill: imples[i].getColor(),name: imples[i].getName()});
-                var impleText = new fabric.Text(imples[i].getName(), {fontFamily: 'sans-serif',fontSize:15, top:12});
+                var impleCircle = new fabric.Triangle({width:15,
+                                                       height:15,
+                                                       fill: imples[i].getColor(),
+                                                       name: imples[i].getName()});
+                var impleText = new fabric.Text(imples[i].getName(),
+                                                {fontFamily: 'sans-serif',
+                                                 fontSize:15, top:12});
                 var impleGroup = new fabric.Group([impleText, impleCircle]);
                 
-                /***************************************************************/
-                //ATTEMPT AT ORDERING THEM SO THEY DON'T INITIALLY OVERLAP
-                /***************************************************************/
                 impleGroup.set({top:canvas.height-usedY-impleGroup.height, left:canvas.width-usedX-impleGroup.width});
                 usedX += impleGroup.width*2;
                 if(usedX > canvas.width-impleGroup.width*2) {
@@ -575,44 +581,41 @@ var specsExercise = (function () {
                 impleGroup.hasControls = false;
                 canvas.add(impleGroup);
                 
-                var newPre = $('<pre class="prettyprint specSpan imple" data-id="'+imples[i].getName()+'">'+imples[i].getSpec()+'</pre>');
+                var newPre = $('<pre class="prettyprint objSpan impleSpan" data-id="'+imples[i].getName()+'">'+imples[i].getSpec()+'</pre>');
                 specsDisplay.append(newPre);
                 newPre.css('border-color', impleCircle.fill.replace(',1)',',0.3)'));
             }
             
             //keeps handles on top of the objects
             canvas.controlsAboveOverlay = true;
+            
             //clears implementation highlighting when nothing is selected
             canvas.on('selection:cleared', function() {
-                $('.specSpan').each(function() {
-                    if($(this).hasClass('imple')) {
-                        $(this).css({'background-color':'#f5f5f5', 'height': '20px'});
-                    }
+                $('.impleSpan').each(function() {
+                    $(this).css({'background-color':'#f5f5f5', 'height': '20px'});
                 });
             });
             
             canvas.on('mouse:move', function(evt) {
-                var specsOver = getSpecsOver(evt.e.offsetX, evt.e.offsetY);
+                var objsOver = getObjsOver(evt.e.offsetX, evt.e.offsetY);
                 var scrollTop = 1000;
                 
                 //highlights each specification currently moused over
                 $('.specSpan').each(function() {
-                    if(!$(this).hasClass('imple')) {
-                        if(specsOver.indexOf($(this).attr('data-id')) >= 0) {
-                            if($(this).position().top < scrollTop)
-                                scrollTop = $(this).position().top;
-                            $(this).css('background-color', $(this).css('border-color'));
-                        }
-                        else
-                            $(this).css('background-color', '#f5f5f5');
+                    if(objsOver.indexOf($(this).attr('data-id')) >= 0) {
+                        if($(this).position().top < scrollTop)
+                            scrollTop = $(this).position().top;
+                        $(this).css('background-color', $(this).css('border-color'));
                     }
+                    else
+                        $(this).css('background-color', '#f5f5f5');
                 });
                 
                 //bolds each relationship containing the moused over specs/imples
                 $('.checkDisplay .wrong ul li').each(function() {
                     $(this).css('font-weight','normal');
-                    for(s in specsOver) {
-                        if($(this).html().indexOf(' '+specsOver[s]+' ') >= 0)
+                    for(s in objsOver) {
+                        if($(this).html().indexOf(' '+objsOver[s]+' ') >= 0)
                             $(this).css('font-weight','bold');
                     }
                 });
@@ -627,8 +630,8 @@ var specsExercise = (function () {
             };
             
             //expands each imple box on click
-            $('.specSpan').on('click', function () {
-                expandImple($(this).attr('data-id'));
+            $('.impleSpan').on('click', function () {
+                highlightBox($(this).attr('data-id'));
             });
             
             /*
@@ -636,13 +639,17 @@ var specsExercise = (function () {
             */
             canvas.forEachObject(function (obj) {
                 
-                //highlights and scrolls to the description box for the selected implementation
+                //highlights and scrolls to the description box for the selected object
                 obj.on('selected', function() {
-                    expandImple(obj.item(1).name);
+                    if(obj.item(0).name === undefined)
+                        highlightBox(obj.item(1).name);
+                    else
+                        highlightBox(obj.item(0).name);
                 });
                 
                 //only uniform scaling allowed, no rotation
                 obj.lockUniScaling = true;
+                obj.lockRotation = true;
                 obj.selectionLineWidth = 5;
                 obj.hasRotatingPoint = false;
                 
@@ -656,9 +663,9 @@ var specsExercise = (function () {
                 //dynamically update position and radius, animate bounce if dragged out of bounds
                 obj.on('modified', function () {
                     var point = obj.getCenterPoint();
-                    if(point.x > 448 | point.x < 0 | point.y > 448 | point.y < 0) {
+                    if(point.x > 448 | point.x < 0 | point.y > 398 | point.y < 0) {
                         point.x = randomInteger(350)+48;
-                        point.y = randomInteger(350)+48;
+                        point.y = randomInteger(300)+48;
                         obj.animate('left', point.x, {onChange: canvas.renderAll.bind(canvas), duration: 100});
                         obj.animate('top', point.y, {onChange: canvas.renderAll.bind(canvas), duration: 100});
                     }
@@ -702,7 +709,7 @@ var specsExercise = (function () {
             //preloads all questions, displays first test question on page load
             for(j in bigJSON) {
                 var qNum = parseInt(j)+1;
-                var newTab = $('<li><a id="showQuestion'+j+'" data-toggle="tab" href="#question'+j+'tab"><strong>Question '+qNum+'</strong></a></li>');
+                var newTab = $('<li id="showQuestion'+j+'"><a data-toggle="tab" href="#question'+j+'tab"><strong>Question '+qNum+'</strong></a></li>');
                 navTabs.append(newTab);
                 var newDiv = $('<div class="tab-pane" id="question'+j+'tab"></div>');
                 if(j === '0') {
@@ -712,12 +719,28 @@ var specsExercise = (function () {
                 tabContent.append(newDiv);
                 var newView = View(j, newDiv, model, controller, displayHints, dynamicChecking);
             }
-            div.addClass('tabbable tabs-left');
+            div.addClass('tabbable');
             div.append(navTabs, tabContent);
             controller.loadQuestions(bigJSON);
             
             //syntax highlighting
             prettyPrint();
+            
+            /*
+            Go to next question on 'N'
+            */
+            $(document).on('keyup', function(evt) {
+                if(evt.which === 78) {
+                    var nextActive = parseInt($('.nav-tabs .active').text().split(' ')[1]);
+                    if(nextActive > bigJSON.length-1)
+                        nextActive = 0;
+                    $('.nav-tabs .active').removeClass('active');
+                    $('.tab-content .active').removeClass('active');
+                    $('#showQuestion'+nextActive).addClass('active');
+                    $('#question'+nextActive+'tab').addClass('active');
+                    $('#showQuestion'+nextActive).find('a').click();
+                }
+            });
         }
         
         if(dynamicChecking) {
@@ -776,12 +799,41 @@ $(document).ready(function () {
     /*
     Loads description box on first load
     */
-    if(localStorage.specAppLoadedOnce === undefined) {
-        $('.modal').modal('show');
-        localStorage.specAppLoadedOnce = 1;
+    function load(touchEnable, storeChoice) {
+        if(localStorage.specsAppTouchEnabled !== undefined)
+            fabric.isTouchSupported = localStorage.specsAppTouchEnabled === "true";
+        else
+            fabric.isTouchSupported = touchEnable;
+        if(storeChoice)
+            localStorage.specsAppTouchEnabled = touchEnable;
+        if(localStorage.specAppLoadedOnce === undefined) {
+            $('.specModal').modal('show');
+            localStorage.specAppLoadedOnce = 1;
+        }
+        specsExercise.setup($('.specs'));
     }
     
-    $('.specs').each(function () {
-        specsExercise.setup($(this));
-    });
+    /*
+    Checks for touch input
+    */
+    if(fabric.isTouchSupported & localStorage.specsAppTouchEnabled === undefined) {
+        bootbox.dialog("Touchscreen detected. Use app with touch?", [{
+            "label" : "Yes",
+            "class" : "btn-primary",
+            "callback": function () { load(true, false); }
+        }, {
+            "label" : "No",
+            "callback": function () { load(false, false); }
+        }, {
+            "label" : "Always",
+            "class" : "btn-success",
+            "callback": function () { load(true, true); }
+        }, {
+            "label" : "Never",
+            "class" : "btn-warning",
+            "callback": function () { load(false, true); }
+        }]);
+    }
+    else
+        load(false, false);
 });
