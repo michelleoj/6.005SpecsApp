@@ -155,13 +155,13 @@ $(document).ready(function() {
             }
         });
         
-        jsonThing['imples'] = {};
-        $('.imple div').each(function() {
+        jsonThing['impls'] = {};
+        $('.impl div').each(function() {
             var name = $(this).find('.name').val();
             if(name !== "") {
-                jsonThing['imples'][name] = {};
-                jsonThing['imples'][name]['text'] = $(this).find('textarea').val();
-                jsonThing['imples'][name]['color'] = randomColor(1);
+                jsonThing['impls'][name] = {};
+                jsonThing['impls'][name]['text'] = $(this).find('textarea').val();
+                jsonThing['impls'][name]['color'] = randomColor(1);
             }
         });
         
@@ -171,7 +171,7 @@ $(document).ready(function() {
     
     
     var counterspec = 1; 
-    var counterimple = 1;
+    var counterimpl = 1;
 
     /*
     Adds a spec form to the Specs div
@@ -201,26 +201,26 @@ $(document).ready(function() {
     }
     
     /*
-    Adds an impl form to the Imples div
+    Adds an impl form to the Impls div
     */
-    function addImple() {
-        counterimple += 1;
-        var imple = $('<div style="margin-bottom:15px; margin-right: 10px" class="imple' + counterimple + '">' +
+    function addImpl() {
+        counterimpl += 1;
+        var impl = $('<div style="margin-bottom:15px; margin-right: 10px" class="impl' + counterimpl + '">' +
                     '<input class="name span4" style="width: 350px; font-family: monospace" type="text" placeholder="Implementation name..."><br>' +
                     '<textarea class="span4" style="width: 350px; height: 200px; margin-right: 15px; font-family: monospace" placeholder="Enter implementation"></textarea><br>' +
-                    '<button data-imple="' + counterimple + '" class="deci btn btn-info" class="btn btn-primary">Remove Implementation</button>' +
+                    '<button data-impl="' + counterimpl + '" class="deci btn btn-info" class="btn btn-primary">Remove Implementation</button>' +
                     '</div>');
-        imple.find("button").on('click', function() {
-           decImple($(this).attr("data-imple")); 
+        impl.find("button").on('click', function() {
+           decImpl($(this).attr("data-impl")); 
         });
-        $(".imple").append(imple);     
+        $(".impl").append(impl);     
     }
     
     /*
     Removes an impl form to the Ipmles div
     */
-    function decImple(impleNum) {
-        $(".imple" + impleNum).remove();
+    function decImpl(implNum) {
+        $(".impl" + implNum).remove();
     }
     
     /*
@@ -238,11 +238,11 @@ $(document).ready(function() {
         });
         
         $(".addi").off();
-        $(".addi").on('click', addImple);
+        $(".addi").on('click', addImpl);
         $(".deci").each(function() {
             $(this).off();
             $(this).on('click', function() {
-              decImple($(this).attr("data-imple"));  
+              decImpl($(this).attr("data-impl"));  
             });
         });
         

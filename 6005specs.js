@@ -87,13 +87,13 @@ Spec.prototype = {
     
 }
 
-// Implementation object
+// Implmentation object
 
-function Imple(name, text, color) {
+function Impl(name, text, color) {
     Spec.call(this, name, text, color);
 }
 
-inherit(Imple, Spec);
+inherit(Impl, Spec);
 
 //------------------------------
 
@@ -147,29 +147,29 @@ var specsExercise = (function () {
     function Model() {
         var handler = UpdateHandler();
         var specObjects = [];
-        var impleObjects = [];
+        var implObjects = [];
         var relationships = [];
         
         /*
-        Places all the spec and imple objects into an array data type and sends the trigger message 'loaded'
+        Places all the spec and impl objects into an array data type and sends the trigger message 'loaded'
         
         @specs array of spec objects
-        @imples array of imple objects
+        @impls array of impl objects
         @rels array of relationships
         */
-        function loadQuestion(specs, imples, rels) {
+        function loadQuestion(specs, impls, rels) {
             specObjects.push({});
-            impleObjects.push({});
+            implObjects.push({});
             var index = specObjects.length - 1;
             
             for(s in specs)
                 specObjects[index][specs[s].getName()] = specs[s];
-            for(i in imples)
-                impleObjects[index][imples[i].getName()] = imples[i];
+            for(i in impls)
+                implObjects[index][impls[i].getName()] = impls[i];
             
             relationships.push(rels);
             //store the relationships
-            handler.trigger('loaded', [index, specs, imples]);
+            handler.trigger('loaded', [index, specs, impls]);
         }
         
         /*
@@ -197,7 +197,7 @@ var specsExercise = (function () {
         @canvasJSON a JSON string or false
         */
         function checkAnswer(questionNumber, canvasJSON) {
-            var currentSpecs = [specObjects[questionNumber],impleObjects[questionNumber]];
+            var currentSpecs = [specObjects[questionNumber],implObjects[questionNumber]];
             var currentRels = relationships[questionNumber];
             var correct = true;
             var allRels = [];
@@ -245,18 +245,18 @@ var specsExercise = (function () {
         }
         
         /*
-        Updates the Imple object in the current question
+        Updates the Impl object in the current question
         
         @questionNumber a positive int
-        @name a string of the name of the imple object
+        @name a string of the name of the impl object
         @x a positive int
         @y a positive int
         */
-        function updateImple(questionNumber, name, x, y) {
-            impleObjects[questionNumber][name].setPosition(x, y);
+        function updateImpl(questionNumber, name, x, y) {
+            implObjects[questionNumber][name].setPosition(x, y);
         }
         
-        return {loadQuestion: loadQuestion, updateSpec: updateSpec, updateImple: updateImple, checkAnswer: checkAnswer, on: handler.on};
+        return {loadQuestion: loadQuestion, updateSpec: updateSpec, updateImpl: updateImpl, checkAnswer: checkAnswer, on: handler.on};
     }
     
     //*************************************************
@@ -267,18 +267,18 @@ var specsExercise = (function () {
     function Controller(model) {
 
         /*
-        Formats the questions from JSON into either a Spec object or Imple object
+        Formats the questions from JSON into either a Spec object or Impl object
         
         @bigJSON the JSON string 
         */
         function loadQuestions(bigJSON) {
             for(j in bigJSON) {
                 var jsonThing = bigJSON[j];
-                var specs = [], imples = [], relationships = [];
+                var specs = [], impls = [], relationships = [];
                 
-                for(i in jsonThing['imples']) {
-                    var currentImple = jsonThing['imples'][i];
-                    imples.push(new Imple(i, currentImple['text'], currentImple['color']));
+                for(i in jsonThing['impls']) {
+                    var currentImpl = jsonThing['impls'][i];
+                    impls.push(new Impl(i, currentImpl['text'], currentImpl['color']));
                 }
                 
                 for(s in jsonThing['specs']) {
@@ -298,7 +298,7 @@ var specsExercise = (function () {
                     }
                 }
                 //tells model to fire the 'loaded' message
-                model.loadQuestion(specs, imples, relationships);
+                model.loadQuestion(specs, impls, relationships);
             }
         }
         
@@ -316,15 +316,15 @@ var specsExercise = (function () {
         }
         
         /*
-        Triggers the event that loads or updates a Imple object 
+        Triggers the event that loads or updates a Impl object 
         
         @questionNumber a positive int 
         @name a string
         @x a positive int
         @y a positive int
         */
-        function updateImple(questionNumber, name, x, y) {
-            model.updateImple(questionNumber, name, x, y);
+        function updateImpl(questionNumber, name, x, y) {
+            model.updateImpl(questionNumber, name, x, y);
         }
         
         /*
@@ -337,7 +337,7 @@ var specsExercise = (function () {
             model.checkAnswer(questionNumber, canvasJSON);
         }
         
-        return {loadQuestions: loadQuestions, updateSpec: updateSpec, updateImple: updateImple, checkAnswer: checkAnswer};
+        return {loadQuestions: loadQuestions, updateSpec: updateSpec, updateImpl: updateImpl, checkAnswer: checkAnswer};
     }
     
     //*************************************************
@@ -348,11 +348,11 @@ var specsExercise = (function () {
     function View(questionNumber, div, model, controller, displayHints, dynamicChecking) {
         
         //initializing the html objects
-        var vennDiagrams = $('<div class="vennDiagrams wide tall"><canvas id="c'+questionNumber+'"height="398" width="448"></canvas></div>');
-        var specsDisplay = $('<div class="specsDisplay narrow tall"></div>');
-        var checkDisplay = $('<div class="checkDisplay wide short"></div>');
+        var vennDiagrams = $('<div class="vennDiagrams"><canvas id="c'+questionNumber+'"height="398" width="448"></canvas></div>');
+        var specsDisplay = $('<div class="specsDisplay"></div>');
+        var checkDisplay = $('<div class="checkDisplay"></div>');
         
-        var canvas, specs, imples;
+        var canvas, specs, impls;
         
         /*
         Submit button is disabled after first submit, or always in dynamic checking mode
@@ -389,11 +389,11 @@ var specsExercise = (function () {
                 
                 //adds whitespacing for easier parsing
                 var newHintItem = ' '+allRels[s]+' ';
-                for(i in imples) {
+                for(i in impls) {
                     
                     //parses for name surrounded by whitespace, in case of 'index' finding 'indexA'
-                    if(newHintItem.indexOf(' '+imples[i].getName()+' ') >= 0)
-                        newHintItem = ' '+imples[i].getName()+' satisfies '+allRels[s].split(' ')[0]+' ';
+                    if(newHintItem.indexOf(' '+impls[i].getName()+' ') >= 0)
+                        newHintItem = ' '+impls[i].getName()+' satisfies '+allRels[s].split(' ')[0]+' ';
                 }
                 hint += '<li>'+newHintItem+'</li>';
             }
@@ -438,10 +438,10 @@ var specsExercise = (function () {
         */
         function highlightBox(name) {
             $('.objSpan').each(function() {
-                if($(this).hasClass('impleSpan'))
+                if($(this).hasClass('implSpan'))
                     $(this).css('height', '20px');
                 if($(this).attr('data-id') === name) {
-                    if($(this).hasClass('impleSpan'))
+                    if($(this).hasClass('implSpan'))
                         $(this).css('height', 'auto');
                     specsDisplay.scrollTop($(this).position().top);
                     $(this).css('background-color', $(this).css('border-color').replace(',1)',',0.3)'));
@@ -501,7 +501,7 @@ var specsExercise = (function () {
         function loadSpecs(data) {
             
             specs = data[0];
-            imples = data[1];
+            impls = data[1];
             
             canvas = new fabric.Canvas('c'+questionNumber);
             
@@ -561,29 +561,29 @@ var specsExercise = (function () {
             specsDisplay.append('<pre class="label">&#9650; IMPLEMENTATIONS</pre>');
             usedX = 0;
             usedY = 0;
-            for(i in imples) {
-                var impleCircle = new fabric.Triangle({width:15,
+            for(i in impls) {
+                var implCircle = new fabric.Triangle({width:15,
                                                        height:15,
-                                                       fill: imples[i].getColor(),
-                                                       name: imples[i].getName()});
-                var impleText = new fabric.Text(imples[i].getName(),
+                                                       fill: impls[i].getColor(),
+                                                       name: impls[i].getName()});
+                var implText = new fabric.Text(impls[i].getName(),
                                                 {fontFamily: 'sans-serif',
                                                  fontSize:15, top:12});
-                var impleGroup = new fabric.Group([impleText, impleCircle]);
+                var implGroup = new fabric.Group([implText, implCircle]);
                 
-                impleGroup.set({top:canvas.height-usedY-impleGroup.height, left:canvas.width-usedX-impleGroup.width});
-                usedX += impleGroup.width*2;
-                if(usedX > canvas.width-impleGroup.width*2) {
+                implGroup.set({top:canvas.height-usedY-implGroup.height, left:canvas.width-usedX-implGroup.width});
+                usedX += implGroup.width*2;
+                if(usedX > canvas.width-implGroup.width*2) {
                     usedX = 0;
-                    usedY += impleGroup.height*2;
+                    usedY += implGroup.height*2;
                 }
                 
-                impleGroup.hasControls = false;
-                canvas.add(impleGroup);
+                implGroup.hasControls = false;
+                canvas.add(implGroup);
                 
-                var newPre = $('<pre class="prettyprint objSpan impleSpan" data-id="'+imples[i].getName()+'">'+imples[i].getSpec()+'</pre>');
+                var newPre = $('<pre class="prettyprint objSpan implSpan" data-id="'+impls[i].getName()+'">'+impls[i].getSpec()+'</pre>');
                 specsDisplay.append(newPre);
-                newPre.css('border-color', impleCircle.fill.replace(',1)',',0.3)'));
+                newPre.css('border-color', implCircle.fill.replace(',1)',',0.3)'));
             }
             
             //keeps handles on top of the objects
@@ -591,7 +591,7 @@ var specsExercise = (function () {
             
             //clears implementation highlighting when nothing is selected
             canvas.on('selection:cleared', function() {
-                $('.impleSpan').each(function() {
+                $('.implSpan').each(function() {
                     $(this).css({'background-color':'#f5f5f5', 'height': '20px'});
                 });
             });
@@ -611,7 +611,7 @@ var specsExercise = (function () {
                         $(this).css('background-color', '#f5f5f5');
                 });
                 
-                //bolds each relationship containing the moused over specs/imples
+                //bolds each relationship containing the moused over specs/impls
                 $('.checkDisplay .wrong ul li').each(function() {
                     $(this).css('font-weight','normal');
                     for(s in objsOver) {
@@ -629,8 +629,8 @@ var specsExercise = (function () {
                 return false;
             };
             
-            //expands each imple box on click
-            $('.impleSpan').on('click', function () {
+            //expands each impl box on click
+            $('.implSpan').on('click', function () {
                 highlightBox($(this).attr('data-id'));
             });
             
@@ -658,7 +658,7 @@ var specsExercise = (function () {
                 if(obj.item(1).name === undefined)
                     controller.updateSpec(questionNumber, obj.item(0).name, obj.getBoundingRectWidth()/2, point.x, point.y);
                 else
-                    controller.updateImple(questionNumber, obj.item(1).name, point.x, point.y);
+                    controller.updateImpl(questionNumber, obj.item(1).name, point.x, point.y);
                 
                 //dynamically update position and radius, animate bounce if dragged out of bounds
                 obj.on('modified', function () {
@@ -672,7 +672,7 @@ var specsExercise = (function () {
                     if(obj.item(1).name === undefined)
                         controller.updateSpec(questionNumber, obj.item(0).name, obj.getBoundingRectWidth()/2, point.x, point.y);
                     else
-                        controller.updateImple(questionNumber, obj.item(1).name, point.x, point.y);
+                        controller.updateImpl(questionNumber, obj.item(1).name, point.x, point.y);
                     
                     //checks answer if dynamic mode enabled
                     if(dynamicChecking)
