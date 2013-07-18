@@ -8,7 +8,8 @@ jQuery, jQueryUI, Bootstrap, Bootbox, Prettify, Fabric.js, Highcharts, Node.js
 
 Instructors
 ===========
-Use JSONEditor.html to generate specs/impls matching questions. When finished, paste the assembled JSON into questions.js, within the array 'questions'. (KEEP THE FORMAT OF THE ARRAY DECLARATION, INCLUDING THE NEWLINE BEFORE THE CLOSING SQUARE BRACKET.)
+Use JSONEditor.html to generate specs/impls matching questions. When finished, paste the assembled JSON into questions.js, within the array 'questions'. (KEEP THE FORMAT OF THE ARRAY DECLARATION, INCLUDING THE NEWLINE BEFORE THE CLOSING SQUARE BRACKET.)  
+Example questions have been loaded in questions.js. Run 6005specs.html to test them.
 
 Embedding
 ---------
@@ -46,7 +47,7 @@ Direct students to 6005specs.html.
 Deployment - Quiz Mode
 ----------------------
 In 6005specs.html, or in the embedded code, set the "data-dynamic" attribute of div.specs to "off".  
-Load the same files as above into an online folder, minus questions.js. Delete the HTML line to include questions.js.  
+Load the same files as above into an online folder, minus questions.js. Delete the HTML line to include questions.js. In 6005specs.js, change the global 'serverURL' variable to the appropriate IP address.  
 Make sure questions.js and specserver.js are in the same folder on your machine; run a Node.js server from specserver.js.  
 Direct students to 6005specs.html, and allow students to submit answers.  
 Open displayresults.html. Hit "Close" when you want to close the quiz.  
