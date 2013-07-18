@@ -8,7 +8,7 @@ chart.highcharts({
         plotBorderWidth: null,
         plotShadow: false,
         height: 450,
-        width: 600
+        width: 450
     },
     title: {
         text: 'Distribution of student answers'
