@@ -8,7 +8,8 @@ jQuery, jQueryUI, Bootstrap, Bootbox, Prettify, Fabric.js, Highcharts, Node.js
 
 Instructors
 ===========
-Use JSONEditor.html to generate specs/impls matching questions. When finished, paste the assembled JSON into questions.js, within the array 'questions'. (KEEP THE FORMAT OF THE ARRAY DECLARATION, INCLUDING THE NEWLINE BEFORE THE CLOSING SQUARE BRACKET.)
+Use JSONEditor.html to generate specs/impls matching questions. When finished, paste the assembled JSON into questions.js, within the array 'questions'. (KEEP THE FORMAT OF THE ARRAY DECLARATION, INCLUDING THE NEWLINE BEFORE THE CLOSING SQUARE BRACKET.)  
+Example questions have been loaded in questions.js. Run 6005specs.html to test them.
 
 Embedding
 ---------
