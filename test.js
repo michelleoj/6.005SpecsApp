@@ -444,9 +444,10 @@ var specsExercise = (function () {
                     if($(this).hasClass('implSpan')) {
                         $(this).removeClass('hidden');
                         $(this).removeClass('collapsed');
+                        implsDisplay.scrollTop($(this).position().top-implsDisplay.find('.label').position().top);
                     }
                     else
-                        specsDisplay.scrollTop($(this).position().top);
+                        specsDisplay.scrollTop($(this).position().top-specsDisplay.find('.label').position().top);
                     $(this).css('background-color', $(this).css('border-color').replace(',1)',',0.3)'));
                 }
                 else
@@ -461,9 +462,14 @@ var specsExercise = (function () {
         function viewImpls() {
             if(!showImpls) {
                 implsDisplay.find('.label').html('&#9650; SHOW IMPLEMENTATIONS');
+                implsDisplay.css('height', 'auto');
             }
             else {
                 implsDisplay.find('.label').html('&#9660; HIDE IMPLEMENTATIONS');
+                if(implsDisplay.height() > 275) {
+                    implsDisplay.height(275);
+                    implsDisplay.css('overflow-y', 'auto');
+                }
             }
             specsDisplay.css('height', ((550-implsDisplay.height())+'px'));
             checkDisplay.css('top', ((-50-specsDisplay.height())+'px'));
