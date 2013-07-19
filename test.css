@@ -9,6 +9,11 @@
     margin-bottom: 1px;
 }
 
+.specs .help {
+    color: blue;
+    cursor: pointer;
+}
+
 .specs .tab-pane {
     border: 1px solid gray;
     height: 550px;

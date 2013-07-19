@@ -755,6 +755,10 @@ var specsExercise = (function () {
                 tabContent.append(newDiv);
                 var newView = View(j, newDiv, model, controller, displayHints, dynamicChecking);
             }
+            navTabs.append('<li class="pull-right help">Help <i class="icon-question-sign"></i></li>');
+            navTabs.find('.help').on('click', function () {
+                $('.specModal').modal('show');
+            });
             div.addClass('tabbable');
             div.append(navTabs, tabContent);
             controller.loadQuestions(bigJSON);
