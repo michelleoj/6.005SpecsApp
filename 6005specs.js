@@ -818,6 +818,11 @@ $(document).ready(function () {
             localStorage.specAppLoadedOnce = 1;
         }
         specsExercise.setup($('.specs'));
+        
+        $(window).on('keyup', function(evt) {
+            if(evt.which === 13)
+                $('.specModal').modal('hide');
+        });
     }
     
     /*

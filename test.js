@@ -474,8 +474,8 @@ var specsExercise = (function () {
                 else
                     implsDisplay.css('height', 'auto');
             }
-            specsDisplay.css('height', ((550-implsDisplay.height())+'px'));
-            checkDisplay.css('top', ((-50-specsDisplay.height())+'px'));
+            specsDisplay.css('height', ((550-implsDisplay.outerHeight(true))+'px'));
+            checkDisplay.css('top', ((-50-specsDisplay.outerHeight(true))+'px'));
         }
         
         /*
@@ -860,6 +860,11 @@ $(document).ready(function () {
             localStorage.specAppLoadedOnce = 1;
         }
         specsExercise.setup($('.specs'));
+        
+        $(window).on('keyup', function(evt) {
+            if(evt.which === 13)
+                $('.specModal').modal('hide');
+        });
     }
     
     /*
