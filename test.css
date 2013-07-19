@@ -21,8 +21,8 @@
 }
 
 .specs .vennDiagrams {
-    height: 450px;
-    width: 400px;
+    height: 400px;
+    width: 450px;
 }
 
 .specs .checkDisplay .btn {
@@ -59,7 +59,7 @@
 .specs .checkDisplay {
     text-align: center;
     position: relative;
-    top: -574px;                        /*blah*/
+    top: -524px;                        /*blah*/
     height: 150px;
     width: 450px;
 }
@@ -71,7 +71,7 @@
     height: 524px;                      /*blah*/
     width: 349px;
     position: relative;
-    top: -450px;
+    top: -400px;
     left: 450px;
     background-color: #f5f5f5;
 }
@@ -82,7 +82,7 @@
     overflow-x: hidden;
     overflow-y: auto;
     position: relative;
-    top: -600px;                        /*blah*/
+    top: -550px;                        /*blah*/
     left: 450px;
     width: 349px;
     cursor: pointer;
@@ -90,7 +90,7 @@
 
 .specs pre {
     border-radius: 0;
-    width: 305;
+    width: 305px;
     padding: 5px 25px 5px 10px;
     margin: 0;
     border-width: 1px 1px 1px 10px;

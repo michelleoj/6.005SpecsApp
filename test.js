@@ -482,7 +482,7 @@ var specsExercise = (function () {
                     implsDisplay.css('height', 'auto');
             }
             specsDisplay.css('height', ((550-implsDisplay.outerHeight(true))+'px'));
-            checkDisplay.css('top', ((-50-specsDisplay.outerHeight(true))+'px'));
+            checkDisplay.css('top', ((-specsDisplay.outerHeight(true))+'px'));
         }
         
         /*
