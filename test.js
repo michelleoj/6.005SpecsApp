@@ -466,10 +466,10 @@ var specsExercise = (function () {
             }
             else {
                 implsDisplay.find('.label').html('&#9660; HIDE IMPLEMENTATIONS');
-                if(implsDisplay.height() > 275) {
-                    implsDisplay.height(275);
-                    implsDisplay.css('overflow-y', 'auto');
-                }
+                if(implsDisplay.height() >= 275)
+                    implsDisplay.css('height', '275px');
+                else
+                    implsDisplay.css('height', 'auto');
             }
             specsDisplay.css('height', ((550-implsDisplay.height())+'px'));
             checkDisplay.css('top', ((-50-specsDisplay.height())+'px'));
