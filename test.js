@@ -363,9 +363,12 @@ var specsExercise = (function () {
         checkButton.on('click', function () {
             controller.checkAnswer(questionNumber, JSON.stringify(canvas.toJSON()));
             $(this).prop('disabled', true);
+            $(this).text('Submitted');
         });
-        if(dynamicChecking)
+        if(dynamicChecking) {
             checkButton.prop('disabled', true);
+            checkButton.text('Dynamic Checking Enabled');
+        }
         
         //initializes the feedback displays
         var correctDisplay = $('<div class="notify correct">Correct!</div>');
