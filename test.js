@@ -202,6 +202,8 @@ var specsExercise = (function () {
             var correct = true;
             var allRels = [];
             
+            var wrongness = 0;
+            
             for(i in currentSpecs[0]) {
                 //compares each spec to every other spec and every implementation
                 for(k in currentSpecs) {
@@ -213,30 +215,35 @@ var specsExercise = (function () {
                             
                             //does not count disjoint as a relationship
                             if(newRel.indexOf('is disjoint from') < 0 & allRels.indexOf(newRel) < 0 & allRels.indexOf(newRelRev) < 0) {
-                                if(currentRels.indexOf(newRel) < 0 & currentRels.indexOf(newRelRev) < 0)
+                                if(currentRels.indexOf(newRel) < 0 & currentRels.indexOf(newRelRev) < 0) {
                                     correct = false;
+                                    wrongness++;
+                                }
                                 allRels.push(newRel);
                             }
                         }
                     }
                 }
             }
-            if(allRels.length !== currentRels.length)
+            if(allRels.length !== currentRels.length) {
                 correct = false;
+                wrongness += Math.abs(allRels.length - currentRels.length);
+            }
             handler.trigger('checked', [questionNumber, correct, allRels]);
             
             /***********************
             *
             *   AJAX
             *   stores a student's answer and image on the server
-            ***********************/
+            ***********************/            
             if(canvasJSON !== false) {
                 $.ajax({url: serverURL,
                         data: {want: 'answer',
                                question: String(questionNumber),
                                answer: JSON.stringify(allRels),
                                correct: String(correct),
-                               image: canvasJSON
+                               image: canvasJSON,
+                               wrongness: wrongness
                               }
                        }).done(function(response) {
                     console.log(response);
