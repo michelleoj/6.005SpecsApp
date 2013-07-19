@@ -353,7 +353,7 @@ var specsExercise = (function () {
         var checkDisplay = $('<div class="checkDisplay"></div>');
         var implsDisplay = $('<div class="implsDisplay"></div>');
         
-        var canvas, specs, impls, showImpls;
+        var canvas, specs, impls, showImpls = false, selectedImpl = undefined;
         
         /*
         Submit button is disabled after first submit, or always in dynamic checking mode
@@ -438,16 +438,12 @@ var specsExercise = (function () {
         Expands if it is an implementation
         */
         function highlightBox(name) {
-            
-            collapseImpls();
+            sizeImpls();
             div.find('.objSpan').each(function() {
-                if($(this).attr('data-id') === name) {
+                if($(this).attr('data-id') === selectedImpl | $(this).attr('data-id') === name) {
                     if($(this).hasClass('implSpan')) {
-                        $(this).css('height', 'auto');
-                        implsDisplay.find('.label').html('&#9660; HIDE IMPLEMENTATION');
-                        implsDisplay.css('height', 'auto');
-                        specsDisplay.css('height', ((550-implsDisplay.height())+'px'));
-                        checkDisplay.css('top', ((-50-specsDisplay.height())+'px'));
+                        $(this).removeClass('hidden');
+                        $(this).removeClass('collapsed');
                     }
                     else
                         specsDisplay.scrollTop($(this).position().top);
@@ -456,30 +452,37 @@ var specsExercise = (function () {
                 else
                     $(this).css('background-color', '#f5f5f5');
             });
+            viewImpls();
         }
         
         /*
-        Brings up the first line of each implementation
+        Adjusts the impl display view and the positions of affected components
         */
-        function previewImpls() {
-            collapseImpls();
-            implsDisplay.find('.label').html('&#9660; HIDE IMPLEMENTATIONS');
-            implsDisplay.css('height', 'auto');
+        function viewImpls() {
+            if(!showImpls) {
+                implsDisplay.find('.label').html('&#9650; SHOW IMPLEMENTATIONS');
+            }
+            else {
+                implsDisplay.find('.label').html('&#9660; HIDE IMPLEMENTATIONS');
+            }
             specsDisplay.css('height', ((550-implsDisplay.height())+'px'));
             checkDisplay.css('top', ((-50-specsDisplay.height())+'px'));
         }
         
         /*
-        Collapses the impl display
+        Sizes the impl display
         */
-        function collapseImpls() {
-            implsDisplay.find('.label').html('&#9650; SHOW IMPLEMENTATIONS');
+        function sizeImpls() {
             div.find('.implSpan').each(function() {
-                $(this).css({'height': '20px', 'background-color': '#f5f5f5'});
+                if(showImpls) {
+                    $(this).removeClass('hidden');
+                    $(this).addClass('collapsed');
+                }
+                else {
+                    $(this).addClass('hidden');
+                    $(this).removeClass('collapsed');
+                }
             });
-            specsDisplay.css('height','524px');
-            checkDisplay.css('top','-574px');
-            implsDisplay.css({top: '-600px', height: '26px'});
         }
                 
         //insertion sort the objects' z-indices based on radius - larger in back, smaller in front
@@ -591,11 +594,8 @@ var specsExercise = (function () {
             //REPEAT FOR IMPLEMENTATIONS
             implsDisplay.append('<pre class="label">&#9650; SHOW IMPLEMENTATIONS</pre>');
             implsDisplay.find('pre').on('click', function () {
-                if($(this).html().indexOf('HIDE') >= 0) {
-                    collapseImpls();
-                }
-                else
-                    previewImpls();
+                showImpls = !showImpls;
+                highlightBox();
             });
             usedX = 0;
             usedY = 0;
@@ -619,7 +619,7 @@ var specsExercise = (function () {
                 implGroup.hasControls = false;
                 canvas.add(implGroup);
                 
-                var newPre = $('<pre class="prettyprint objSpan implSpan" data-id="'+impls[i].getName()+'">'+impls[i].getSpec()+'</pre>');
+                var newPre = $('<pre class="prettyprint objSpan implSpan hidden" data-id="'+impls[i].getName()+'">'+impls[i].getSpec()+'</pre>');
                 implsDisplay.append(newPre);
                 newPre.css('border-color', implCircle.fill.replace(',1)',',0.3)'));
             }
@@ -629,10 +629,8 @@ var specsExercise = (function () {
             
             //clears implementation highlighting when nothing is selected
             canvas.on('selection:cleared', function() {
-                if(implsDisplay.find('.label').html().indexOf('HIDE') >= 0)
-                    previewImpls();
-                else
-                    collapseImpls();
+                selectedImpl = undefined;
+                highlightBox();
             });
             
             canvas.on('mouse:move', function(evt) {
@@ -670,7 +668,8 @@ var specsExercise = (function () {
             
             //expands each impl box on click
             div.find('.implSpan').on('click', function () {
-                highlightBox($(this).attr('data-id'));
+                selectedImpl = $(this).attr('data-id');
+                highlightBox();
             });
             
             /*
@@ -680,10 +679,8 @@ var specsExercise = (function () {
                 
                 //highlights and scrolls to the description box for the selected object
                 obj.on('selected', function() {
-                    if(obj.item(0).name === undefined)
-                        highlightBox(obj.item(1).name);
-                    else
-                        highlightBox(obj.item(0).name);
+                    selectedImpl = obj.item(1).name;
+                    highlightBox(obj.item(0).name);
                 });
                 
                 //only uniform scaling allowed, no rotation

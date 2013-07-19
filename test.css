@@ -77,7 +77,6 @@
     position: relative;
     top: -600px;                        /*blah*/
     left: 450px;
-    height: 26px;                       /*blah*/
     width: 349px;
     cursor: pointer;
 }
@@ -92,6 +91,17 @@
 
 .specs .implSpan {
     overflow: hidden;
+}
+
+.specs .hidden {
+    height: 0px;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-top: 0;
+    border-bottom: 0;
+}
+
+.specs .collapsed {
     height: 20px;
 }
 
