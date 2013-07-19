@@ -360,7 +360,13 @@ var specsExercise = (function () {
         var checkDisplay = $('<div class="checkDisplay"></div>');
         var implsDisplay = $('<div class="implsDisplay"></div>');
         
-        var canvas, specs, impls, showImpls = false, selectedImpl = undefined;
+        var canvas, specs, impls, showImpls = false, selectedImpl = undefined, submitted = false;
+        
+        //initializes the feedback displays
+        var correctDisplay = $('<div class="notify correct">Correct!</div>');
+        var wrongDisplay = $('<div class="notify wrong">Wrong.</div>');
+        var neutralDisplay = $('<div class="notify neutral"></div>');
+        checkDisplay.append(correctDisplay, wrongDisplay, neutralDisplay);
         
         /*
         Submit button is disabled after first submit, or always in dynamic checking mode
@@ -368,6 +374,7 @@ var specsExercise = (function () {
         var checkButton = $('<button class="btn">Submit</button>');
         checkDisplay.append(checkButton);
         checkButton.on('click', function () {
+            submitted = true;
             controller.checkAnswer(questionNumber, JSON.stringify(canvas.toJSON()));
             $(this).prop('disabled', true);
             $(this).text('Submitted');
@@ -376,11 +383,6 @@ var specsExercise = (function () {
             checkButton.prop('disabled', true);
             checkButton.text('Dynamic Checking Enabled');
         }
-        
-        //initializes the feedback displays
-        var correctDisplay = $('<div class="notify correct">Correct!</div>');
-        var wrongDisplay = $('<div class="notify wrong">Wrong.</div>');
-        checkDisplay.append(correctDisplay, wrongDisplay);
         
         /*
         Displays feedback based on the user's answers, changes color of checkDisplay and the current tab
@@ -410,19 +412,26 @@ var specsExercise = (function () {
             }
             hint = '<ul class="unstyled">'+hint+'</ul>';
             
-            if(correct) {
-                if(displayHints)
-                    correctDisplay.html(hint);
-                correctDisplay.show();
-                wrongDisplay.hide();
-                $('#showQuestion'+questionNumber).find('a').css({'background-color':'#dff0d8'});
+            if(displayHints)
+                div.find('.notify').html(hint);
+            if(dynamicChecking | submitted) {
+                if(correct) {
+                    correctDisplay.show();
+                    wrongDisplay.hide();
+                    neutralDisplay.hide();
+                    $('#showQuestion'+questionNumber).find('a').css({'background-color':'#dff0d8'});
+                }
+                else {
+                    wrongDisplay.show();
+                    correctDisplay.hide();
+                    neutralDisplay.hide();
+                    $('#showQuestion'+questionNumber).find('a').css('background-color', '#f2dede');
+                }
             }
             else {
-                if(displayHints)
-                    wrongDisplay.html(hint);
-                wrongDisplay.show();
                 correctDisplay.hide();
-                $('#showQuestion'+questionNumber).find('a').css('background-color', '#f2dede');
+                wrongDisplay.hide();
+                neutralDisplay.show();
             }
         }
         
@@ -665,7 +674,7 @@ var specsExercise = (function () {
                 });
                 
                 //bolds each relationship containing the moused over specs/impls
-                div.find('.checkDisplay .wrong ul li').each(function() {
+                div.find('.checkDisplay ul li').each(function() {
                     $(this).css('font-weight','normal');
                     for(s in objsOver) {
                         if($(this).html().indexOf(' '+objsOver[s]+' ') >= 0)
@@ -726,9 +735,7 @@ var specsExercise = (function () {
                     else
                         controller.updateImpl(questionNumber, obj.item(1).name, point.x, point.y);
                     
-                    //checks answer if dynamic mode enabled
-                    if(dynamicChecking)
-                        controller.checkAnswer(questionNumber, false);
+                    controller.checkAnswer(questionNumber, false);
                     
                     sortObjects();
                 });

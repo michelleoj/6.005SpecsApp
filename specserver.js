@@ -66,7 +66,7 @@ my_http.createServer(function(request,response){
     if(data.want === 'load')
         answer = questions;
     else if(data.want === 'answers')
-        answer = JSON.stringify(studentAnswers[questionNumber]);
+        answer = JSON.stringify(studentAnswers);
     else if(data.want === 'answer' & closed !== true)
         answer = addAnswer(data.answer, questionNumber, data.correct, data.image, data.wrongness, request.connection.remoteAddress);
     else if(data.want === 'close')
