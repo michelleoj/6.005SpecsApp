@@ -42,6 +42,18 @@ chart.highcharts({
         }
     }]
 });
+
+function getColor(wrongness) {
+    if(wrongness === 0)
+        return 'rgb(0,255,0)';
+    if(wrongness > 0 & wrongness <= 10) {
+        var scale = 200*(10-wrongness)/10;
+        return 'rgb(255,'+scale+','+scale+')';
+    }
+    if(wrongness > 10)
+        return 'rgb(255,0,0)';
+}
+
 /***********************
 *
 *   AJAX
@@ -60,6 +72,7 @@ function showAnswers(qNum) {
             dataAnswers[index]['y'] = studentAnswers[s]['y'];
             //THIS IS A JSON STRING FOR FABRIC.CANVAS TO LOAD
             dataAnswers[index]['image'] = studentAnswers[s]['image'];
+            dataAnswers[index]['color'] = getColor(parseInt(studentAnswers[s]['wrongness']));
             if(studentAnswers[s]['correct']) {
                 canvas.loadFromJSON(studentAnswers[s]['image']);
                 dataAnswers[index]['sliced'] = true;
