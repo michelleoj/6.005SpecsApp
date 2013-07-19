@@ -363,9 +363,12 @@ var specsExercise = (function () {
         checkButton.on('click', function () {
             controller.checkAnswer(questionNumber, JSON.stringify(canvas.toJSON()));
             $(this).prop('disabled', true);
+            $(this).text('Submitted');
         });
-        if(dynamicChecking)
+        if(dynamicChecking) {
             checkButton.prop('disabled', true);
+            checkButton.text('Dynamic Checking Enabled');
+        }
         
         //initializes the feedback displays
         var correctDisplay = $('<div class="notify correct">Correct!</div>');
@@ -466,10 +469,10 @@ var specsExercise = (function () {
             }
             else {
                 implsDisplay.find('.label').html('&#9660; HIDE IMPLEMENTATIONS');
-                if(implsDisplay.height() > 275) {
-                    implsDisplay.height(275);
-                    implsDisplay.css('overflow-y', 'auto');
-                }
+                if(implsDisplay.height() >= 275)
+                    implsDisplay.css('height', '275px');
+                else
+                    implsDisplay.css('height', 'auto');
             }
             specsDisplay.css('height', ((550-implsDisplay.height())+'px'));
             checkDisplay.css('top', ((-50-specsDisplay.height())+'px'));
