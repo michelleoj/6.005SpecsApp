@@ -24,12 +24,13 @@ Adds a new answer
 @ip a string
 @returns a string - message detailing what was added to what
 */
-function addAnswer(answer, questionNumber, correct, image, ip) {
+function addAnswer(answer, questionNumber, correct, image, wrongness, ip) {
     if(alreadyAnswered[questionNumber].indexOf(ip) < 0) {
         if(studentAnswers[questionNumber][answer] === undefined) {
             studentAnswers[questionNumber][answer] = {};
             studentAnswers[questionNumber][answer]['y'] = 1;
             studentAnswers[questionNumber][answer]['image'] = image;
+            studentAnswers[questionNumber][answer]['wrongness'] = wrongness;
         }
         else
             studentAnswers[questionNumber][answer]['y'] += 1;
@@ -67,7 +68,7 @@ my_http.createServer(function(request,response){
     else if(data.want === 'answers')
         answer = JSON.stringify(studentAnswers[questionNumber]);
     else if(data.want === 'answer' & closed !== true)
-        answer = addAnswer(data.answer, questionNumber, data.correct, data.image, request.connection.remoteAddress);
+        answer = addAnswer(data.answer, questionNumber, data.correct, data.image, data.wrongness, request.connection.remoteAddress);
     else if(data.want === 'close')
         closed = true;
     else if(data.want === 'open')
