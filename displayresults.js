@@ -101,6 +101,7 @@ $.ajax({url: serverURL, data: {want: 'load'}}).done(function(response) {
         $('.nav').append(newTab);
         newTab.on('click', function () {
             currentTab = parseInt($(this).attr('id'));
+            showAnswers(currentTab);
         });
     }
     
