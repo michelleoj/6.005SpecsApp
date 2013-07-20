@@ -1,5 +1,5 @@
 //URL for server
-var serverURL = 'http://18.189.23.245:8080';
+var serverURL;
 
 // Objects
 
@@ -352,7 +352,7 @@ var specsExercise = (function () {
     //*                ----- VIEW -----
     //*
     //*************************************************
-    function View(questionNumber, div, model, controller, displayHints, dynamicChecking) {
+    function View(questionNumber, div, model, controller, dynamicChecking) {
         
         //initializing the html objects
         var vennDiagrams = $('<div class="vennDiagrams"><canvas id="c'+questionNumber+'"height="398" width="448"></canvas></div>');
@@ -363,10 +363,8 @@ var specsExercise = (function () {
         var canvas, specs, impls, showImpls = false, selectedImpl = undefined, submitted = false;
         
         //initializes the feedback displays
-        var correctDisplay = $('<div class="notify correct">Correct!</div>');
-        var wrongDisplay = $('<div class="notify wrong">Wrong.</div>');
-        var neutralDisplay = $('<div class="notify neutral"></div>');
-        checkDisplay.append(correctDisplay, wrongDisplay, neutralDisplay);
+        var feedbackDisplay = $('<div class="notify neutral"></div>');
+        checkDisplay.append(feedbackDisplay);
         
         /*
         Submit button is disabled after first submit, or always in dynamic checking mode
@@ -412,26 +410,22 @@ var specsExercise = (function () {
             }
             hint = '<ul class="unstyled">'+hint+'</ul>';
             
-            if(displayHints)
-                div.find('.notify').html(hint);
+            feedbackDisplay.html(hint);
             if(dynamicChecking | submitted) {
                 if(correct) {
-                    correctDisplay.show();
-                    wrongDisplay.hide();
-                    neutralDisplay.hide();
+                    feedbackDisplay.removeClass("neutral wrong");
+                    feedbackDisplay.addClass("correct");
                     $('#showQuestion'+questionNumber).find('a').css({'background-color':'#dff0d8'});
                 }
                 else {
-                    wrongDisplay.show();
-                    correctDisplay.hide();
-                    neutralDisplay.hide();
+                    feedbackDisplay.removeClass("neutral correct");
+                    feedbackDisplay.addClass("wrong");
                     $('#showQuestion'+questionNumber).find('a').css('background-color', '#f2dede');
                 }
             }
             else {
-                correctDisplay.hide();
-                wrongDisplay.hide();
-                neutralDisplay.show();
+                feedbackDisplay.removeClass("correct wrong");
+                feedbackDisplay.addClass("neutral");
             }
         }
         
@@ -571,10 +565,6 @@ var specsExercise = (function () {
             $('#showQuestion'+questionNumber).find('a').on('click', function (evt) {
                 setTimeout(function(){canvas.renderAll();},500);
             });
-            
-            //initially hides the feedback views
-            correctDisplay.hide();
-            wrongDisplay.hide();
             
             /*
             Populate canvas and side display
@@ -749,8 +739,8 @@ var specsExercise = (function () {
     @returns a public fuction "setup" to be invoked by the user
     */
     function setup(div) {
-        var displayHints = div.attr('data-hint') === 'on';
-        var dynamicChecking = div.attr('data-dynamic') === 'on';
+        var dynamicChecking = div.attr('data-server') === 'off';
+        serverURL = div.attr('data-ip');
         
         var model = Model();
         var controller = Controller(model);
@@ -776,7 +766,7 @@ var specsExercise = (function () {
                     newDiv.addClass('active');
                 }
                 tabContent.append(newDiv);
-                var newView = View(j, newDiv, model, controller, displayHints, dynamicChecking);
+                var newView = View(j, newDiv, model, controller, dynamicChecking);
             }
             navTabs.append('<li class="pull-right help">Help <i class="icon-question-sign"></i></li>');
             navTabs.find('.help').on('click', function () {

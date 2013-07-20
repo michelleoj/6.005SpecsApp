@@ -8,6 +8,14 @@
     margin-bottom: 1px;
 }
 
+.specs .nav-tabs li {
+    opacity: 0.5;
+}
+
+.specs .nav-tabs .active {
+    opacity: 1;
+}
+
 .specs .help {
     color: blue;
     cursor: pointer;
@@ -57,6 +65,7 @@
 }
 
 .specs .checkDisplay .neutral {
+    color: #000;
     background-color: #f5f5f5;
 }
 
