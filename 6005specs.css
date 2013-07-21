@@ -19,6 +19,7 @@
 .specs .help {
     color: blue;
     cursor: pointer;
+    opacity: 1;
 }
 
 .specs .tab-pane {
@@ -31,6 +32,7 @@
 .specs .vennDiagrams {
     height: 400px;
     width: 450px;
+    background-color: #fff;
 }
 
 .specs .checkDisplay .btn {

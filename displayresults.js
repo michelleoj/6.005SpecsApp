@@ -1,5 +1,7 @@
 var serverURL = 'http://localhost:8080';
 
+var allStudentAnswers, currentTab = 0, open = true, selected = [];
+
 var canvas = new fabric.Canvas('canvas');
 var chart = $('.chart');
 chart.highcharts({
@@ -37,6 +39,7 @@ chart.highcharts({
                 select: function(event) {
                     canvas.clear();
                     canvas.loadFromJSON(this.image);
+                    selected[currentTab] = this.string;
                 }
             }
         }
@@ -59,7 +62,6 @@ function getColor(wrongness) {
 *   AJAX
 *   grabs the stored answers data from the server
 ***********************/
-var allStudentAnswers, currentTab = 0, open = true;
 
 function showAnswers(qNum) {
     var studentAnswers = allStudentAnswers[qNum];
@@ -73,7 +75,11 @@ function showAnswers(qNum) {
         //THIS IS A JSON STRING FOR FABRIC.CANVAS TO LOAD
         dataAnswers[index]['image'] = studentAnswers[s]['image'];
         dataAnswers[index]['color'] = getColor(parseInt(studentAnswers[s]['wrongness']));
-        if(studentAnswers[s]['correct']) {
+        dataAnswers[index]['string'] = s;
+        if(studentAnswers[s]['correct'] & selected[qNum] === undefined)
+            selected[qNum] = s;
+        if(s === selected[qNum]) {
+            canvas.clear();
             canvas.loadFromJSON(studentAnswers[s]['image']);
             dataAnswers[index]['sliced'] = true;
             dataAnswers[index]['selected'] = true;
@@ -86,7 +92,7 @@ function showAnswers(qNum) {
 
 //recursive server call to update answers
 function getAnswers() {
-    $.ajax({url: serverURL, data: {want: 'answers'}}).done(function(response) {
+    $.ajax({url: serverURL, data: {want: 'allanswers'}}).done(function(response) {
         allStudentAnswers = jQuery.parseJSON(response);
         showAnswers(currentTab);
         if(open)
@@ -103,6 +109,8 @@ $.ajax({url: serverURL, data: {want: 'load'}}).done(function(response) {
             currentTab = parseInt($(this).attr('id'));
             showAnswers(currentTab);
         });
+        
+        selected.push(undefined);
     }
     
     getAnswers();
