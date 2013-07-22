@@ -270,7 +270,7 @@ $(document).ready(function() {
         
         $("button[type='submit']").off();
         if (editMode == false) {
-            $("button[type='submit']").text('Submit');
+            $("button[type='submit']").text('Add');
             
             $("button[type='submit']").on('click', submit);
         }

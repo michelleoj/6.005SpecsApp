@@ -29,12 +29,12 @@ Include the following code in your HTML head:
 
 Insert the following code where you want to place the applet (alter as needed, detailed below):  
 
-        <div class="specs" data-hint="on" data-dynamic="on"></div>
+        <div class="specs" data-server="off" data-ip=""></div>
         <script src="questions.js"></script>
 
 Deployment - Homework Mode
 --------------------------
-In 6005specs.html, or in the embedded code, set the "data-dynamic" attribute of div.specs to "on".  
+In 6005specs.html, or in the embedded code, set the "data-server" attribute of div.specs to "off".  
 Load the following files into an online folder:
 * 6005specs.css, .js, .html
 * bootbox.min.js
@@ -46,8 +46,8 @@ Direct students to 6005specs.html.
 
 Deployment - Quiz Mode
 ----------------------
-In 6005specs.html, or in the embedded code, set the "data-dynamic" attribute of div.specs to "off".  
-Load the same files as above into an online folder, minus questions.js. Delete the HTML line to include questions.js. In 6005specs.js, change the global 'serverURL' variable to the appropriate IP address.  
+In 6005specs.html, or in the embedded code, set the "data-server" attribute of div.specs to "on". Set "data-ip" to the appropriate address and port number ("http://XXX.X.X.X:####")  
+Load the same files as above into an online folder, minus questions.js. Delete the HTML line to include questions.js.  
 Make sure questions.js and specserver.js are in the same folder on your machine; run a Node.js server from specserver.js.  
 Direct students to 6005specs.html, and allow students to submit answers.  
 Open displayresults.html. Hit "Close" when you want to close the quiz.  

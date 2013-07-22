@@ -10,14 +10,15 @@
     </head>
     <body>
         <div class="tabbable">
-            <ul class="nav nav-tabs"></ul>
+            <ul class="nav nav-tabs">
+                <li><button class="btn btn-warning" id="closeBtn" style="border-radius:0">Close</button></li>
+                <li><button class="btn btn-info" id="resetBtn" style="border-radius:0">Reset</button></li>
+            </ul>
             <div class="chart" style="float:left"></div>
             <div class="image" style="width:450px;height:450px;border:1px solid gray;float:left">
                 <canvas id="canvas" height=450 width=450></canvas>
             </div>
         </div>
-        <button class="btn btn-warning" id="closeBtn">Close</button>
-        <button class="btn btn-info" id="resetBtn">Reset</button>
         <script src="displayresults.js"></script>
     </body>
 </html>
