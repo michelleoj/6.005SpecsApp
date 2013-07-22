@@ -357,8 +357,10 @@ var specsExercise = (function () {
         //initializing the html objects
         var vennDiagrams = $('<div class="vennDiagrams"><canvas id="c'+questionNumber+'"height="398" width="448"></canvas></div>');
         var specsDisplay = $('<div class="specsDisplay"></div>');
+        var specsScrollable = $('<div class="scrollable"></div>');
         var checkDisplay = $('<div class="checkDisplay"></div>');
         var implsDisplay = $('<div class="implsDisplay"></div>');
+        var implsScrollable = $('<div class="scrollable"></div>');
         
         var canvas, specs, impls, showImpls = false, selectedImpl = undefined, submitted = false, justClickedSubmitted = false;
         
@@ -461,26 +463,39 @@ var specsExercise = (function () {
         */
         function highlightBox(name) {
             sizeImpls();
+            
+            var scrollTo = undefined;
+            var scrollImple = true;
+            
             div.find('.objSpan').each(function() {
                 if($(this).attr('data-id') === selectedImpl | $(this).attr('data-id') === name) {
-                    if($(this).hasClass('implSpan')) {
+                    if($(this).hasClass('implSpan'))
                         $(this).removeClass('hidden');
-                        implsDisplay.scrollTop($(this).position().top-implsDisplay.find('.label').position().top);
-                    }
                     else
-                        specsDisplay.scrollTop($(this).position().top-specsDisplay.find('.label').position().top);
+                        scrollImple = false;
+                    scrollTo = $(this);
                     $(this).css('background-color', $(this).css('border-left-color').replace(',1)',',0.3)'));
                 }
                 else
                     $(this).css('background-color', '#f5f5f5');
             });
             viewImpls();
+            
+            if(scrollTo !== undefined) {
+                if(scrollImple)
+                    implsScrollable.scrollTop(scrollTo.position().top - implsScrollable.position().top);
+                else
+                    specsScrollable.scrollTop(scrollTo.position().top - specsScrollable.position().top);
+            }
         }
         
         /*
         Adjusts the impl display view and the positions of affected components
         */
         function viewImpls() {
+            implsScrollable.css('height', 'auto');
+            specsScrollable.css('height', 'auto');
+            
             if(!showImpls) {
                 implsDisplay.find('.label').html('&#9650; SHOW IMPLEMENTATIONS');
                 implsDisplay.css('height', 'auto');
@@ -494,6 +509,9 @@ var specsExercise = (function () {
             }
             specsDisplay.css('height', ((550-implsDisplay.outerHeight(true))+'px'));
             checkDisplay.css('top', ((-specsDisplay.outerHeight(true))+'px'));
+            
+            implsScrollable.css('height', (implsDisplay.outerHeight(true)-implsDisplay.find('.label').outerHeight(true))+'px');
+            specsScrollable.css('height', (specsDisplay.outerHeight(true)-specsDisplay.find('.label').outerHeight(true))+'px');
         }
         
         /*
@@ -579,6 +597,8 @@ var specsExercise = (function () {
             //TABLE HEADER
             specsDisplay.append('<pre class="label">&#9679; SPECIFICATIONS</pre>');
             
+            specsDisplay.append(specsScrollable);
+            
             //positioning
             var usedX = 0, usedY = 0;
             for(s in specs) {
@@ -608,16 +628,19 @@ var specsExercise = (function () {
                 Populates the right-side display
                 */
                 var newPre = $('<pre class="prettyprint objSpan specSpan" data-id="'+specs[s].getName()+'">'+specs[s].getSpec()+'</pre>');
-                specsDisplay.append(newPre);
+                specsScrollable.append(newPre);
                 newPre.css('border-color', circle1.fill);
             }
             
             //REPEAT FOR IMPLEMENTATIONS
-            implsDisplay.append('<pre class="label">&#9650; SHOW IMPLEMENTATIONS</pre>');
+            implsDisplay.append('<pre class="label clickable">&#9650; SHOW IMPLEMENTATIONS</pre>');
             implsDisplay.find('pre').on('click', function () {
                 showImpls = !showImpls;
                 highlightBox();
             });
+            
+            implsDisplay.append(implsScrollable);
+            
             usedX = 0;
             usedY = 0;
             for(i in impls) {
@@ -641,7 +664,7 @@ var specsExercise = (function () {
                 canvas.add(implGroup);
                 
                 var newPre = $('<pre class="prettyprint objSpan implSpan hidden" data-id="'+impls[i].getName()+'">'+impls[i].getSpec()+'</pre>');
-                implsDisplay.append(newPre);
+                implsScrollable.append(newPre);
                 newPre.css('border-color', implCircle.fill.replace(',1)',',0.3)'));
             }
             
@@ -678,8 +701,8 @@ var specsExercise = (function () {
                     }
                 });
                 
-                if(scrollTop !== 0 & scrollTop !== 1000)
-                    specsDisplay.scrollTop(scrollTop);
+                if(scrollTop !== 1000)
+                    specsScrollable.scrollTop(scrollTop - specsScrollable.position().top);
             });
             
             //disable right click on canvas
@@ -768,7 +791,7 @@ var specsExercise = (function () {
                 tabContent.append(newDiv);
                 var newView = View(j, newDiv, model, controller, dynamicChecking);
             }
-            navTabs.append('<li class="pull-right help">Help <i class="icon-question-sign"></i></li>');
+            navTabs.append('<li class="pull-right help clickable">Help <i class="icon-question-sign"></i></li>');
             navTabs.find('.help').on('click', function () {
                 $('.specModal').modal('show');
             });
