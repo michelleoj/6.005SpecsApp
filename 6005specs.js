@@ -225,7 +225,7 @@ var specsExercise = (function () {
                     }
                 }
             }
-            if(allRels.length !== currentRels.length) {
+            if(allRels.length < currentRels.length) {
                 correct = false;
                 wrongness += Math.abs(allRels.length - currentRels.length);
             }
@@ -456,7 +456,6 @@ var specsExercise = (function () {
                 if($(this).attr('data-id') === selectedImpl | $(this).attr('data-id') === name) {
                     if($(this).hasClass('implSpan')) {
                         $(this).removeClass('hidden');
-                        $(this).removeClass('collapsed');
                         implsDisplay.scrollTop($(this).position().top-implsDisplay.find('.label').position().top);
                     }
                     else
@@ -495,11 +494,9 @@ var specsExercise = (function () {
             div.find('.implSpan').each(function() {
                 if(showImpls) {
                     $(this).removeClass('hidden');
-                    $(this).addClass('collapsed');
                 }
                 else {
                     $(this).addClass('hidden');
-                    $(this).removeClass('collapsed');
                 }
             });
         }
@@ -680,12 +677,6 @@ var specsExercise = (function () {
             vennDiagrams[0].oncontextmenu = function () {
                 return false;
             };
-            
-            //expands each impl box on click
-            div.find('.implSpan').on('click', function () {
-                selectedImpl = $(this).attr('data-id');
-                highlightBox();
-            });
             
             /*
             Define properties of every canvas object

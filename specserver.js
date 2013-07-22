@@ -38,7 +38,7 @@ function addAnswer(answer, questionNumber, correct, image, wrongness, ip) {
             studentAnswers[questionNumber][answer]['correct'] = true;
         else
             studentAnswers[questionNumber][answer]['correct'] = false;
-        alreadyAnswered[questionNumber].push(ip);
+//        alreadyAnswered[questionNumber].push(ip);
         return ip+" added answer "+answer+" to question "+questionNumber;
     }
     return ip+" has already answered question "+questionNumber+", request denied";

@@ -100,7 +100,6 @@
     top: -550px;                        /*blah*/
     left: 450px;
     width: 349px;
-    cursor: pointer;
 }
 
 .specs pre {
@@ -123,13 +122,8 @@
     border-bottom: 0;
 }
 
-/*
-.specs .collapsed {
-    height: 20px;
-}
-*/
-
 .specs .label {
     text-decoration-color: 'white';
     background-color: 'black';
+    cursor: pointer;
 }
