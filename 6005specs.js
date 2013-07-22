@@ -360,11 +360,12 @@ var specsExercise = (function () {
         var checkDisplay = $('<div class="checkDisplay"></div>');
         var implsDisplay = $('<div class="implsDisplay"></div>');
         
-        var canvas, specs, impls, showImpls = false, selectedImpl = undefined, submitted = false;
+        var canvas, specs, impls, showImpls = false, selectedImpl = undefined, submitted = false, justClickedSubmitted = false;
         
         //initializes the feedback displays
         var feedbackDisplay = $('<div class="notify neutral"></div>');
-        checkDisplay.append(feedbackDisplay);
+        var feedbackBgImage = $('<img src="correct.png"></img>');
+        checkDisplay.append(feedbackBgImage, feedbackDisplay);
         
         /*
         Submit button is disabled after first submit, or always in dynamic checking mode
@@ -373,6 +374,7 @@ var specsExercise = (function () {
         checkDisplay.append(checkButton);
         checkButton.on('click', function () {
             submitted = true;
+            justClickedSubmitted = true;
             controller.checkAnswer(questionNumber, JSON.stringify(canvas.toJSON()));
             $(this).prop('disabled', true);
             $(this).text('Submitted');
@@ -416,11 +418,18 @@ var specsExercise = (function () {
                     feedbackDisplay.removeClass("neutral wrong");
                     feedbackDisplay.addClass("correct");
                     $('#showQuestion'+questionNumber).find('a').css({'background-color':'#dff0d8'});
+                    feedbackBgImage.attr('src', 'correct.png');
                 }
                 else {
                     feedbackDisplay.removeClass("neutral correct");
                     feedbackDisplay.addClass("wrong");
                     $('#showQuestion'+questionNumber).find('a').css('background-color', '#f2dede');
+                    feedbackBgImage.attr('src', 'wrong.png');
+                }
+                if(justClickedSubmitted) {
+                    feedbackDisplay.css('opacity', '0');
+                    feedbackDisplay.animate({'opacity': '1'}, 2000);
+                    justClickedSubmitted = false;
                 }
             }
             else {
@@ -460,7 +469,7 @@ var specsExercise = (function () {
                     }
                     else
                         specsDisplay.scrollTop($(this).position().top-specsDisplay.find('.label').position().top);
-                    $(this).css('background-color', $(this).css('border-color').replace(',1)',',0.3)'));
+                    $(this).css('background-color', $(this).css('border-left-color').replace(',1)',',0.3)'));
                 }
                 else
                     $(this).css('background-color', '#f5f5f5');
@@ -646,7 +655,7 @@ var specsExercise = (function () {
             });
             
             canvas.on('mouse:move', function(evt) {
-                var objsOver = getObjsOver(evt.e.offsetX, evt.e.offsetY);
+                var objsOver = getObjsOver(evt.e.offsetX || evt.e.layerX, evt.e.offsetY || evt.e.layerY);
                 var scrollTop = 1000;
                 
                 //highlights each specification currently moused over
@@ -654,7 +663,7 @@ var specsExercise = (function () {
                     if(objsOver.indexOf($(this).attr('data-id')) >= 0) {
                         if($(this).position().top < scrollTop)
                             scrollTop = $(this).position().top;
-                        $(this).css('background-color', $(this).css('border-color'));
+                        $(this).css('background-color', $(this).css('border-left-color'));
                     }
                     else
                         $(this).css('background-color', '#f5f5f5');
