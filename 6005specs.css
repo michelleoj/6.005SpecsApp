@@ -38,12 +38,19 @@
 }
 
 .specs .checkDisplay .btn {
-    width: 450px;
     height: 30px;
     padding: 0;
     border-radius: 0;
     position: relative;
     top: -120px;
+}
+
+.specs .checkDisplay .submit {
+    width: 350px;
+}
+
+.specs .checkDisplay .toggleQuestion {
+    width: 50px;
 }
 
 .specs .checkDisplay .notify {

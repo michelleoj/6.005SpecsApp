@@ -352,7 +352,7 @@ var specsExercise = (function () {
     //*                ----- VIEW -----
     //*
     //*************************************************
-    function View(questionNumber, div, model, controller, dynamicChecking) {
+    function View(questionNumber, div, model, controller, dynamicChecking, disablePrevButton, disableNextButton) {
         
         //initializing the html objects
         var vennDiagrams = $('<div class="vennDiagrams"><canvas id="c'+questionNumber+'"height="398" width="448"></canvas></div>');
@@ -369,11 +369,13 @@ var specsExercise = (function () {
         var feedbackBgImage = $('<img src="correct.png"></img>');
         checkDisplay.append(feedbackBgImage, feedbackDisplay);
         
+        var checkButton = $('<button class="btn submit">Submit</button>');
+        var prevButton = $('<button class="btn toggleQuestion"><u>P</u>rev</button>');
+        var nextButton = $('<button class="btn toggleQuestion"><u>N</u>ext</button>');
+        
         /*
         Submit button is disabled after first submit, or always in dynamic checking mode
         */
-        var checkButton = $('<button class="btn">Submit</button>');
-        checkDisplay.append(checkButton);
         checkButton.on('click', function () {
             submitted = true;
             justClickedSubmitted = true;
@@ -385,6 +387,22 @@ var specsExercise = (function () {
             checkButton.prop('disabled', true);
             checkButton.text('Dynamic Checking Enabled');
         }
+        
+        /*
+        Go to the prev/next question
+        */
+        prevButton.on('click', function () {
+            jQuery.event.trigger({type: 'keyup', which: 80});
+        });
+        if(disablePrevButton)
+            prevButton.prop('disabled', true);
+        nextButton.on('click', function () {
+            jQuery.event.trigger({type: 'keyup', which: 78});
+        });
+        if(disableNextButton)
+            nextButton.prop('disabled', true);
+        
+        checkDisplay.append(prevButton, checkButton, nextButton);
         
         /*
         Displays feedback based on the user's answers, changes color of checkDisplay and the current tab
@@ -428,7 +446,7 @@ var specsExercise = (function () {
                     $('#showQuestion'+questionNumber).find('a').css('background-color', '#f2dede');
                     feedbackBgImage.attr('src', 'wrong.png');
                 }
-                if(justClickedSubmitted) {
+                if(justClickedSubmitted | correct) {
                     feedbackDisplay.css('opacity', '0');
                     feedbackDisplay.animate({'opacity': '1'}, 2000);
                     justClickedSubmitted = false;
@@ -789,7 +807,7 @@ var specsExercise = (function () {
                     newDiv.addClass('active');
                 }
                 tabContent.append(newDiv);
-                var newView = View(j, newDiv, model, controller, dynamicChecking);
+                var newView = View(j, newDiv, model, controller, dynamicChecking, j==='0', j===String(bigJSON.length-1));
             }
             navTabs.append('<li class="pull-right help clickable">Help <i class="icon-question-sign"></i></li>');
             navTabs.find('.help').on('click', function () {
@@ -806,10 +824,15 @@ var specsExercise = (function () {
             Go to next question on 'N'
             */
             $(document).on('keyup', function(evt) {
-                if(evt.which === 78) {
+                var whichKey = evt.which;
+                if(whichKey === 78 | whichKey === 80) {
                     var nextActive = parseInt($('.nav-tabs .active').text().split(' ')[1]);
+                    if(whichKey === 80)
+                        nextActive = nextActive - 2;
                     if(nextActive > bigJSON.length-1)
                         nextActive = 0;
+                    if(nextActive < 0)
+                        nextActive = bigJSON.length-1;
                     $('.nav-tabs .active').removeClass('active');
                     $('.tab-content .active').removeClass('active');
                     $('#showQuestion'+nextActive).addClass('active');
