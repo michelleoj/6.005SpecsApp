@@ -1,5 +1,5 @@
 //URL for server
-var serverURL = 'http://18.189.23.245:8080';
+var serverURL;
 
 // Objects
 
@@ -87,7 +87,7 @@ Spec.prototype = {
     
 }
 
-// Implmentation object
+// Implementation object
 
 function Impl(name, text, color) {
     Spec.call(this, name, text, color);
@@ -225,7 +225,7 @@ var specsExercise = (function () {
                     }
                 }
             }
-            if(allRels.length !== currentRels.length) {
+            if(allRels.length < currentRels.length) {
                 correct = false;
                 wrongness += Math.abs(allRels.length - currentRels.length);
             }
@@ -252,10 +252,10 @@ var specsExercise = (function () {
         }
         
         /*
-        Updates the Impl object in the current question
+        Updates the Imple object in the current question
         
         @questionNumber a positive int
-        @name a string of the name of the impl object
+        @name a string of the name of the imple object
         @x a positive int
         @y a positive int
         */
@@ -274,7 +274,7 @@ var specsExercise = (function () {
     function Controller(model) {
 
         /*
-        Formats the questions from JSON into either a Spec object or Impl object
+        Formats the questions from JSON into either a Spec object or impl object
         
         @bigJSON the JSON string 
         */
@@ -323,7 +323,7 @@ var specsExercise = (function () {
         }
         
         /*
-        Triggers the event that loads or updates a Impl object 
+        Triggers the event that loads or updates a impl object 
         
         @questionNumber a positive int 
         @name a string
@@ -352,14 +352,19 @@ var specsExercise = (function () {
     //*                ----- VIEW -----
     //*
     //*************************************************
-    function View(questionNumber, div, model, controller, displayHints, dynamicChecking) {
+    function View(questionNumber, div, model, controller, dynamicChecking) {
         
         //initializing the html objects
         var vennDiagrams = $('<div class="vennDiagrams"><canvas id="c'+questionNumber+'"height="398" width="448"></canvas></div>');
         var specsDisplay = $('<div class="specsDisplay"></div>');
         var checkDisplay = $('<div class="checkDisplay"></div>');
+        var implsDisplay = $('<div class="implsDisplay"></div>');
         
-        var canvas, specs, impls;
+        var canvas, specs, impls, showImpls = false, selectedImpl = undefined, submitted = false;
+        
+        //initializes the feedback displays
+        var feedbackDisplay = $('<div class="notify neutral"></div>');
+        checkDisplay.append(feedbackDisplay);
         
         /*
         Submit button is disabled after first submit, or always in dynamic checking mode
@@ -367,6 +372,7 @@ var specsExercise = (function () {
         var checkButton = $('<button class="btn">Submit</button>');
         checkDisplay.append(checkButton);
         checkButton.on('click', function () {
+            submitted = true;
             controller.checkAnswer(questionNumber, JSON.stringify(canvas.toJSON()));
             $(this).prop('disabled', true);
             $(this).text('Submitted');
@@ -375,11 +381,6 @@ var specsExercise = (function () {
             checkButton.prop('disabled', true);
             checkButton.text('Dynamic Checking Enabled');
         }
-        
-        //initializes the feedback displays
-        var correctDisplay = $('<div class="notify correct">Correct!</div>');
-        var wrongDisplay = $('<div class="notify wrong">Wrong.</div>');
-        checkDisplay.append(correctDisplay, wrongDisplay);
         
         /*
         Displays feedback based on the user's answers, changes color of checkDisplay and the current tab
@@ -409,19 +410,22 @@ var specsExercise = (function () {
             }
             hint = '<ul class="unstyled">'+hint+'</ul>';
             
-            if(correct) {
-                if(displayHints)
-                    correctDisplay.html(hint);
-                correctDisplay.show();
-                wrongDisplay.hide();
-                $('#showQuestion'+questionNumber).find('a').css({'background-color':'#dff0d8'});
+            feedbackDisplay.html(hint);
+            if(dynamicChecking | submitted) {
+                if(correct) {
+                    feedbackDisplay.removeClass("neutral wrong");
+                    feedbackDisplay.addClass("correct");
+                    $('#showQuestion'+questionNumber).find('a').css({'background-color':'#dff0d8'});
+                }
+                else {
+                    feedbackDisplay.removeClass("neutral correct");
+                    feedbackDisplay.addClass("wrong");
+                    $('#showQuestion'+questionNumber).find('a').css('background-color', '#f2dede');
+                }
             }
             else {
-                if(displayHints)
-                    wrongDisplay.html(hint);
-                wrongDisplay.show();
-                correctDisplay.hide();
-                $('#showQuestion'+questionNumber).find('a').css('background-color', '#f2dede');
+                feedbackDisplay.removeClass("correct wrong");
+                feedbackDisplay.addClass("neutral");
             }
         }
         
@@ -447,17 +451,53 @@ var specsExercise = (function () {
         Expands if it is an implementation
         */
         function highlightBox(name) {
-            $('.objSpan').each(function() {
-                if($(this).hasClass('implSpan'))
-                    $(this).css('height', '20px');
-                if($(this).attr('data-id') === name) {
-                    if($(this).hasClass('implSpan'))
-                        $(this).css('height', 'auto');
-                    specsDisplay.scrollTop($(this).position().top);
+            sizeImpls();
+            div.find('.objSpan').each(function() {
+                if($(this).attr('data-id') === selectedImpl | $(this).attr('data-id') === name) {
+                    if($(this).hasClass('implSpan')) {
+                        $(this).removeClass('hidden');
+                        implsDisplay.scrollTop($(this).position().top-implsDisplay.find('.label').position().top);
+                    }
+                    else
+                        specsDisplay.scrollTop($(this).position().top-specsDisplay.find('.label').position().top);
                     $(this).css('background-color', $(this).css('border-color').replace(',1)',',0.3)'));
                 }
                 else
                     $(this).css('background-color', '#f5f5f5');
+            });
+            viewImpls();
+        }
+        
+        /*
+        Adjusts the impl display view and the positions of affected components
+        */
+        function viewImpls() {
+            if(!showImpls) {
+                implsDisplay.find('.label').html('&#9650; SHOW IMPLEMENTATIONS');
+                implsDisplay.css('height', 'auto');
+            }
+            else {
+                implsDisplay.find('.label').html('&#9660; HIDE IMPLEMENTATIONS');
+                if(implsDisplay.height() >= 275)
+                    implsDisplay.css('height', '275px');
+                else
+                    implsDisplay.css('height', 'auto');
+            }
+            specsDisplay.css('height', ((550-implsDisplay.outerHeight(true))+'px'));
+            checkDisplay.css('top', ((-specsDisplay.outerHeight(true))+'px'));
+        }
+        
+        /*
+        Sizes the impl display
+        */
+        function sizeImpls() {
+            div.find('.implSpan').each(function() {
+                if(showImpls) {
+                    $(this).removeClass('hidden');
+                }
+                else {
+                    $(this).addClass('hidden');
+                }
             });
         }
                 
@@ -500,7 +540,7 @@ var specsExercise = (function () {
         });
         
         //populates the view for the current question
-        div.append(vennDiagrams, specsDisplay, checkDisplay);
+        div.append(vennDiagrams, specsDisplay, checkDisplay, implsDisplay);
         
         /*
         Initializes and displays the spec objects onto the canvas and keeps track of the canvas' state. 
@@ -522,10 +562,6 @@ var specsExercise = (function () {
             $('#showQuestion'+questionNumber).find('a').on('click', function (evt) {
                 setTimeout(function(){canvas.renderAll();},500);
             });
-            
-            //initially hides the feedback views
-            correctDisplay.hide();
-            wrongDisplay.hide();
             
             /*
             Populate canvas and side display
@@ -568,7 +604,11 @@ var specsExercise = (function () {
             }
             
             //REPEAT FOR IMPLEMENTATIONS
-            specsDisplay.append('<pre class="label">&#9650; IMPLEMENTATIONS</pre>');
+            implsDisplay.append('<pre class="label">&#9650; SHOW IMPLEMENTATIONS</pre>');
+            implsDisplay.find('pre').on('click', function () {
+                showImpls = !showImpls;
+                highlightBox();
+            });
             usedX = 0;
             usedY = 0;
             for(i in impls) {
@@ -591,8 +631,8 @@ var specsExercise = (function () {
                 implGroup.hasControls = false;
                 canvas.add(implGroup);
                 
-                var newPre = $('<pre class="prettyprint objSpan implSpan" data-id="'+impls[i].getName()+'">'+impls[i].getSpec()+'</pre>');
-                specsDisplay.append(newPre);
+                var newPre = $('<pre class="prettyprint objSpan implSpan hidden" data-id="'+impls[i].getName()+'">'+impls[i].getSpec()+'</pre>');
+                implsDisplay.append(newPre);
                 newPre.css('border-color', implCircle.fill.replace(',1)',',0.3)'));
             }
             
@@ -601,9 +641,8 @@ var specsExercise = (function () {
             
             //clears implementation highlighting when nothing is selected
             canvas.on('selection:cleared', function() {
-                $('.implSpan').each(function() {
-                    $(this).css({'background-color':'#f5f5f5', 'height': '20px'});
-                });
+                selectedImpl = undefined;
+                highlightBox();
             });
             
             canvas.on('mouse:move', function(evt) {
@@ -611,7 +650,7 @@ var specsExercise = (function () {
                 var scrollTop = 1000;
                 
                 //highlights each specification currently moused over
-                $('.specSpan').each(function() {
+                div.find('.specSpan').each(function() {
                     if(objsOver.indexOf($(this).attr('data-id')) >= 0) {
                         if($(this).position().top < scrollTop)
                             scrollTop = $(this).position().top;
@@ -622,7 +661,7 @@ var specsExercise = (function () {
                 });
                 
                 //bolds each relationship containing the moused over specs/impls
-                $('.checkDisplay .wrong ul li').each(function() {
+                div.find('.checkDisplay ul li').each(function() {
                     $(this).css('font-weight','normal');
                     for(s in objsOver) {
                         if($(this).html().indexOf(' '+objsOver[s]+' ') >= 0)
@@ -639,11 +678,6 @@ var specsExercise = (function () {
                 return false;
             };
             
-            //expands each impl box on click
-            $('.implSpan').on('click', function () {
-                highlightBox($(this).attr('data-id'));
-            });
-            
             /*
             Define properties of every canvas object
             */
@@ -651,10 +685,8 @@ var specsExercise = (function () {
                 
                 //highlights and scrolls to the description box for the selected object
                 obj.on('selected', function() {
-                    if(obj.item(0).name === undefined)
-                        highlightBox(obj.item(1).name);
-                    else
-                        highlightBox(obj.item(0).name);
+                    selectedImpl = obj.item(1).name;
+                    highlightBox(obj.item(0).name);
                 });
                 
                 //only uniform scaling allowed, no rotation
@@ -684,9 +716,7 @@ var specsExercise = (function () {
                     else
                         controller.updateImpl(questionNumber, obj.item(1).name, point.x, point.y);
                     
-                    //checks answer if dynamic mode enabled
-                    if(dynamicChecking)
-                        controller.checkAnswer(questionNumber, false);
+                    controller.checkAnswer(questionNumber, false);
                     
                     sortObjects();
                 });
@@ -700,8 +730,8 @@ var specsExercise = (function () {
     @returns a public fuction "setup" to be invoked by the user
     */
     function setup(div) {
-        var displayHints = div.attr('data-hint') === 'on';
-        var dynamicChecking = div.attr('data-dynamic') === 'on';
+        var dynamicChecking = div.attr('data-server') === 'off';
+        serverURL = div.attr('data-ip');
         
         var model = Model();
         var controller = Controller(model);
@@ -727,7 +757,7 @@ var specsExercise = (function () {
                     newDiv.addClass('active');
                 }
                 tabContent.append(newDiv);
-                var newView = View(j, newDiv, model, controller, displayHints, dynamicChecking);
+                var newView = View(j, newDiv, model, controller, dynamicChecking);
             }
             navTabs.append('<li class="pull-right help">Help <i class="icon-question-sign"></i></li>');
             navTabs.find('.help').on('click', function () {

@@ -9,7 +9,7 @@ Stores the students' answers and IP addresses
 */
 var studentAnswers = [];
 var alreadyAnswered = [];
-for(q in questions) {
+for(q in JSON.parse(questions)) {
     studentAnswers.push({});
     alreadyAnswered.push([]);
 }
@@ -38,7 +38,7 @@ function addAnswer(answer, questionNumber, correct, image, wrongness, ip) {
             studentAnswers[questionNumber][answer]['correct'] = true;
         else
             studentAnswers[questionNumber][answer]['correct'] = false;
-        alreadyAnswered[questionNumber].push(ip);
+//        alreadyAnswered[questionNumber].push(ip);
         return ip+" added answer "+answer+" to question "+questionNumber;
     }
     return ip+" has already answered question "+questionNumber+", request denied";
@@ -65,8 +65,8 @@ my_http.createServer(function(request,response){
     var questionNumber = Math.max(0,Math.min(studentAnswers.length-1,parseInt(data.question) || 0));
     if(data.want === 'load')
         answer = questions;
-    else if(data.want === 'answers')
-        answer = JSON.stringify(studentAnswers[questionNumber]);
+    else if(data.want === 'allanswers')
+        answer = JSON.stringify(studentAnswers);
     else if(data.want === 'answer' & closed !== true)
         answer = addAnswer(data.answer, questionNumber, data.correct, data.image, data.wrongness, request.connection.remoteAddress);
     else if(data.want === 'close')
@@ -84,4 +84,4 @@ my_http.createServer(function(request,response){
     response.write(answer);
     response.end();  
 }).listen(8080);  
-sys.puts("Server Running on 8000");
+sys.puts("Server Running on 8080");
