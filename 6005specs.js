@@ -515,11 +515,11 @@ var specsExercise = (function () {
             specsScrollable.css('height', 'auto');
             
             if(!showImpls) {
-                implsDisplay.find('.label').html('&#9650; SHOW IMPLEMENTATIONS');
+                implsDisplay.find('.label').html('&#9650; SHOW ALL IMPLEMENTATIONS');
                 implsDisplay.css('height', 'auto');
             }
             else {
-                implsDisplay.find('.label').html('&#9660; HIDE IMPLEMENTATIONS');
+                implsDisplay.find('.label').html('&#9660; SHOW SELECTED IMPLEMENTATION');
                 if(implsDisplay.height() >= 275)
                     implsDisplay.css('height', '275px');
                 else
@@ -651,7 +651,7 @@ var specsExercise = (function () {
             }
             
             //REPEAT FOR IMPLEMENTATIONS
-            implsDisplay.append('<pre class="label clickable">&#9650; SHOW IMPLEMENTATIONS</pre>');
+            implsDisplay.append('<pre class="label clickable">&#9650; SHOW ALL IMPLEMENTATIONS</pre>');
             implsDisplay.find('pre').on('click', function () {
                 showImpls = !showImpls;
                 highlightBox();

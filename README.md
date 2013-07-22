@@ -37,6 +37,7 @@ Deployment - Homework Mode
 In 6005specs.html, or in the embedded code, set the "data-server" attribute of div.specs to "off".  
 Load the following files into an online folder:
 * 6005specs.css, .js, .html
+* correct.png, wrong.png
 * bootbox.min.js
 * fabric.js
 * prettify.js, .css
