@@ -112,8 +112,7 @@ $(document).ready(function() {
             "darkcyan":"rgba(0,139,139,1)",
             "darkblue":"rgba(0,0,139,1)",
             "purple":"rgba(128,0,128,1)",
-            "maroon":"rgba(128,0,0,1)",
-            "darkgrey":"rgba(169,169,169,1)",
+            "maroon":"rgba(128,0,0,1)"
         };
         
         //gives specs and impls their colors 
