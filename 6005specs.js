@@ -285,12 +285,12 @@ var specsExercise = (function () {
                 
                 for(i in jsonThing['impls']) {
                     var currentImpl = jsonThing['impls'][i];
-                    impls.push(new Impl(i, currentImpl['text'], currentImpl['color']));
+                    impls.push(new Impl(i, currentImpl['text'].replace(/\</g, '&lt;').replace(/\>/g, '&gt;'), currentImpl['color']));
                 }
                 
                 for(s in jsonThing['specs']) {
                     var currentSpec = jsonThing['specs'][s];
-                    specs.push(new Spec(s, currentSpec['text'], currentSpec['color']));
+                    specs.push(new Spec(s, currentSpec['text'].replace(/\</g, '&lt;').replace(/\>/g, '&gt;'), currentSpec['color']));
                     
                     for(o in currentSpec['contains']) {
                         var relString = s+' contains '+currentSpec['contains'][o];
