@@ -88,9 +88,11 @@ $(document).ready(function() {
     function resetForm() {
         $('input').each(function() {
             $(this).val("");
+            $(this).attr('value', '');
         });
         $('textarea').each(function() {
             $(this).val("");
+            $(this).html('');
         });
     }
     
@@ -187,6 +189,29 @@ $(document).ready(function() {
         spec.find("button").on('click', function() {
             decSpec($(this).attr("data-spec"));
         });
+        spec.find('textarea').on('keyup', function() {
+            $(this).html($(this).val());
+        });
+        spec.find('textarea').on('keydown', function(e) {
+            if(e.which === 9) {
+                e.preventDefault();
+                
+                var start = $(this).get(0).selectionStart;
+                var end = $(this).get(0).selectionEnd;
+            
+                // set textarea value to: text before caret + tab + text after caret
+                $(this).val($(this).val().substring(0, start)
+                            + "     "
+                            + $(this).val().substring(end));
+            
+                // put caret at right position again
+                $(this).get(0).selectionStart = 
+                $(this).get(0).selectionEnd = start + 5;
+            }
+        });
+        spec.find('input').on('keyup', function() {
+            $(this).attr('value', $(this).val());
+        });
         $(".specs").append(spec);
         
         scrollPos = $('body').scrollTop();
@@ -226,6 +251,29 @@ $(document).ready(function() {
                     '</div>');
         impl.find("button").on('click', function() {
            decImpl($(this).attr("data-impl")); 
+        });
+        impl.find('textarea').on('keyup', function() {
+            $(this).html($(this).val());
+        });
+        impl.find('input').on('keyup', function() {
+            $(this).attr('value', $(this).val());
+        });
+        impl.find('textarea').on('keydown', function(e) {
+            if(e.which === 9) {
+                e.preventDefault();
+                
+                var start = $(this).get(0).selectionStart;
+                var end = $(this).get(0).selectionEnd;
+            
+                // set textarea value to: text before caret + tab + text after caret
+                $(this).val($(this).val().substring(0, start)
+                            + "     "
+                            + $(this).val().substring(end));
+            
+                // put caret at right position again
+                $(this).get(0).selectionStart = 
+                $(this).get(0).selectionEnd = start + 5;
+            }
         });
         $(".impl").append(impl); 
         
@@ -288,6 +336,24 @@ $(document).ready(function() {
         
         $('input').on('keyup', function() {
             $(this).attr('value', $(this).val());
+        });
+        
+        $('textarea').on('keydown', function(e) {
+            if(e.which === 9) {
+                e.preventDefault();
+                
+                var start = $(this).get(0).selectionStart;
+                var end = $(this).get(0).selectionEnd;
+            
+                // set textarea value to: text before caret + tab + text after caret
+                $(this).val($(this).val().substring(0, start)
+                            + "     "
+                            + $(this).val().substring(end));
+            
+                // put caret at right position again
+                $(this).get(0).selectionStart = 
+                $(this).get(0).selectionEnd = start + 5;
+            }
         });
     }
     
