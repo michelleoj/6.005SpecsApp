@@ -180,8 +180,8 @@ $(document).ready(function() {
         counterspec += 1; 
         var spec = $("<div style='margin-right: 20px; margin-bottom: 15px;' class='spec" + counterspec +  "'>\
                     <input class='name' style='width:104px; font-family: monospace' type='text' placeholder='Spec name...'>\
-                    <input class='intersects' style='width:104px; font-family: monospace' type='text' placeholder='Intersections'>\
-                    <input class='contains' style='width:104px; font-family: monospace' type='text' placeholder='Contains'><br>\
+                    <input class='intersects' style='width:104px; font-family: monospace' type='text' placeholder='Intersects...'>\
+                    <input class='contains' style='width:104px; font-family: monospace' type='text' placeholder='Contains...'><br>\
                     <textarea style='font-family: monospace; width: 350px' class='input-xlarge' rows='4' placeholder='Enter spec...'></textarea>\
                     <button data-spec='" +counterspec + "' class='dec btn btn-info' class='btn btn-primary'>Remove Spec</button></div>");
         spec.find("button").on('click', function() {
@@ -382,4 +382,31 @@ $(document).ready(function() {
 });
 
 
-//I will format it into the MVC model. But today is not the da
+function saveTextAsFile()
+{
+	var textToWrite = "var questions = [\n"+$("#result").text()+"\n];";
+	var textFileAsBlob = new Blob([textToWrite], {type:'text/plain'});
+	var fileNameToSaveAs = "questions.js";
+
+	var downloadLink = document.createElement("a");
+	downloadLink.download = fileNameToSaveAs;
+	downloadLink.innerHTML = "Download File";
+	if (window.webkitURL != null)
+	{
+		// Chrome allows the link to be clicked programmatically.
+		downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
+		downloadLink.click();
+	}
+	else
+	{
+		// Firefox requires the user to actually click the link.
+		downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+		downloadLink.onclick = destroyClickedElement;
+		document.body.appendChild(downloadLink);
+	}
+}
+
+function destroyClickedElement(event)
+{
+	document.body.removeChild(event.target);
+}

@@ -29,8 +29,8 @@
                 <div class="specs">
                     <div class="spec1">
                             <input class="name" style="width:105px; font-family: monospace" type="text" placeholder="Spec name...">
-                            <input class="intersects" style="width:104px; font-family: monospace" type="text" placeholder="Intersections">
-                            <input class="contains" style="width:104px; font-family: monospace" type="text" placeholder="Contains"><br>
+                            <input class="intersects" style="width:104px; font-family: monospace" type="text" placeholder="Intersects...">
+                            <input class="contains" style="width:104px; font-family: monospace" type="text" placeholder="Contains..."><br>
                         <textarea class="input-xlarge" style="font-family: monospace; width: 350px" rows="4" placeholder="Enter spec..."></textarea>
                         <button data-spec="1" class="dec btn btn-info" class="btn btn-primary">Remove Spec</button>
                     </div>
@@ -55,7 +55,8 @@
             </div>
             <br><br>
             <h3>JSON code</h3>
-            Insert into questions.js<br><br>
+            Copy and paste into questions.js<br><strong>OR</strong> use "Export to File" to generate the file.
+            (Saves to your browser's default download location.)<br><br>
             <div class="questions">
                     <div id="result"></div>
                     <select id="selectionBox" multiple="multiple" style="height: 140px"></select>
@@ -66,6 +67,7 @@
                     </div>
             </div>
             
+            <button class="btn btn-info" onclick="saveTextAsFile()"><i class="icon-file"></i> Export to File</button>
             
         </div>
     </body>
