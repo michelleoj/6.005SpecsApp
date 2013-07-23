@@ -285,12 +285,12 @@ var specsExercise = (function () {
                 
                 for(i in jsonThing['impls']) {
                     var currentImpl = jsonThing['impls'][i];
-                    impls.push(new Impl(i, currentImpl['text'], currentImpl['color']));
+                    impls.push(new Impl(i, currentImpl['text'].replace(/\</g, '&lt;').replace(/\>/g, '&gt;'), currentImpl['color']));
                 }
                 
                 for(s in jsonThing['specs']) {
                     var currentSpec = jsonThing['specs'][s];
-                    specs.push(new Spec(s, currentSpec['text'], currentSpec['color']));
+                    specs.push(new Spec(s, currentSpec['text'].replace(/\</g, '&lt;').replace(/\>/g, '&gt;'), currentSpec['color']));
                     
                     for(o in currentSpec['contains']) {
                         var relString = s+' contains '+currentSpec['contains'][o];
@@ -352,27 +352,33 @@ var specsExercise = (function () {
     //*                ----- VIEW -----
     //*
     //*************************************************
-    function View(questionNumber, div, model, controller, dynamicChecking) {
+    function View(questionNumber, div, model, controller, dynamicChecking, disablePrevButton, disableNextButton) {
         
         //initializing the html objects
         var vennDiagrams = $('<div class="vennDiagrams"><canvas id="c'+questionNumber+'"height="398" width="448"></canvas></div>');
         var specsDisplay = $('<div class="specsDisplay"></div>');
+        var specsScrollable = $('<div class="scrollable"></div>');
         var checkDisplay = $('<div class="checkDisplay"></div>');
         var implsDisplay = $('<div class="implsDisplay"></div>');
+        var implsScrollable = $('<div class="scrollable"></div>');
         
-        var canvas, specs, impls, showImpls = false, selectedImpl = undefined, submitted = false;
+        var canvas, specs, impls, showImpls = false, selectedImpl = undefined, submitted = false, justClickedSubmitted = false;
         
         //initializes the feedback displays
         var feedbackDisplay = $('<div class="notify neutral"></div>');
-        checkDisplay.append(feedbackDisplay);
+        var feedbackBgImage = $('<img src="correct.png"></img>');
+        checkDisplay.append(feedbackBgImage, feedbackDisplay);
+        
+        var checkButton = $('<button class="btn submit">Submit</button>');
+        var prevButton = $('<button class="btn toggleQuestion"><u>P</u>rev</button>');
+        var nextButton = $('<button class="btn toggleQuestion"><u>N</u>ext</button>');
         
         /*
         Submit button is disabled after first submit, or always in dynamic checking mode
         */
-        var checkButton = $('<button class="btn">Submit</button>');
-        checkDisplay.append(checkButton);
         checkButton.on('click', function () {
             submitted = true;
+            justClickedSubmitted = true;
             controller.checkAnswer(questionNumber, JSON.stringify(canvas.toJSON()));
             $(this).prop('disabled', true);
             $(this).text('Submitted');
@@ -381,6 +387,22 @@ var specsExercise = (function () {
             checkButton.prop('disabled', true);
             checkButton.text('Dynamic Checking Enabled');
         }
+        
+        /*
+        Go to the prev/next question
+        */
+        prevButton.on('click', function () {
+            jQuery.event.trigger({type: 'keyup', which: 80});
+        });
+        if(disablePrevButton)
+            prevButton.prop('disabled', true);
+        nextButton.on('click', function () {
+            jQuery.event.trigger({type: 'keyup', which: 78});
+        });
+        if(disableNextButton)
+            nextButton.prop('disabled', true);
+        
+        checkDisplay.append(prevButton, checkButton, nextButton);
         
         /*
         Displays feedback based on the user's answers, changes color of checkDisplay and the current tab
@@ -416,11 +438,18 @@ var specsExercise = (function () {
                     feedbackDisplay.removeClass("neutral wrong");
                     feedbackDisplay.addClass("correct");
                     $('#showQuestion'+questionNumber).find('a').css({'background-color':'#dff0d8'});
+                    feedbackBgImage.attr('src', 'correct.png');
                 }
                 else {
                     feedbackDisplay.removeClass("neutral correct");
                     feedbackDisplay.addClass("wrong");
                     $('#showQuestion'+questionNumber).find('a').css('background-color', '#f2dede');
+                    feedbackBgImage.attr('src', 'wrong.png');
+                }
+                if(justClickedSubmitted | correct) {
+                    feedbackDisplay.css('opacity', '0');
+                    feedbackDisplay.animate({'opacity': '1'}, 2000);
+                    justClickedSubmitted = false;
                 }
             }
             else {
@@ -452,32 +481,45 @@ var specsExercise = (function () {
         */
         function highlightBox(name) {
             sizeImpls();
+            
+            var scrollTo = undefined;
+            var scrollImple = true;
+            
             div.find('.objSpan').each(function() {
                 if($(this).attr('data-id') === selectedImpl | $(this).attr('data-id') === name) {
-                    if($(this).hasClass('implSpan')) {
+                    if($(this).hasClass('implSpan'))
                         $(this).removeClass('hidden');
-                        implsDisplay.scrollTop($(this).position().top-implsDisplay.find('.label').position().top);
-                    }
                     else
-                        specsDisplay.scrollTop($(this).position().top-specsDisplay.find('.label').position().top);
-                    $(this).css('background-color', $(this).css('border-color').replace(',1)',',0.3)'));
+                        scrollImple = false;
+                    scrollTo = $(this);
+                    $(this).css('background-color', $(this).css('border-left-color').replace(',1)',',0.3)'));
                 }
                 else
                     $(this).css('background-color', '#f5f5f5');
             });
             viewImpls();
+            
+            if(scrollTo !== undefined) {
+                if(scrollImple)
+                    implsScrollable.scrollTop(scrollTo.position().top - implsScrollable.position().top);
+                else
+                    specsScrollable.scrollTop(scrollTo.position().top - specsScrollable.position().top);
+            }
         }
         
         /*
         Adjusts the impl display view and the positions of affected components
         */
         function viewImpls() {
+            implsScrollable.css('height', 'auto');
+            specsScrollable.css('height', 'auto');
+            
             if(!showImpls) {
-                implsDisplay.find('.label').html('&#9650; SHOW IMPLEMENTATIONS');
+                implsDisplay.find('.label').html('&#9650; SHOW ALL IMPLEMENTATIONS');
                 implsDisplay.css('height', 'auto');
             }
             else {
-                implsDisplay.find('.label').html('&#9660; HIDE IMPLEMENTATIONS');
+                implsDisplay.find('.label').html('&#9660; SHOW SELECTED IMPLEMENTATION');
                 if(implsDisplay.height() >= 275)
                     implsDisplay.css('height', '275px');
                 else
@@ -485,6 +527,9 @@ var specsExercise = (function () {
             }
             specsDisplay.css('height', ((550-implsDisplay.outerHeight(true))+'px'));
             checkDisplay.css('top', ((-specsDisplay.outerHeight(true))+'px'));
+            
+            implsScrollable.css('height', (implsDisplay.outerHeight(true)-implsDisplay.find('.label').outerHeight(true))+'px');
+            specsScrollable.css('height', (specsDisplay.outerHeight(true)-specsDisplay.find('.label').outerHeight(true))+'px');
         }
         
         /*
@@ -570,6 +615,8 @@ var specsExercise = (function () {
             //TABLE HEADER
             specsDisplay.append('<pre class="label">&#9679; SPECIFICATIONS</pre>');
             
+            specsDisplay.append(specsScrollable);
+            
             //positioning
             var usedX = 0, usedY = 0;
             for(s in specs) {
@@ -599,16 +646,19 @@ var specsExercise = (function () {
                 Populates the right-side display
                 */
                 var newPre = $('<pre class="prettyprint objSpan specSpan" data-id="'+specs[s].getName()+'">'+specs[s].getSpec()+'</pre>');
-                specsDisplay.append(newPre);
+                specsScrollable.append(newPre);
                 newPre.css('border-color', circle1.fill);
             }
             
             //REPEAT FOR IMPLEMENTATIONS
-            implsDisplay.append('<pre class="label">&#9650; SHOW IMPLEMENTATIONS</pre>');
+            implsDisplay.append('<pre class="label clickable">&#9650; SHOW ALL IMPLEMENTATIONS</pre>');
             implsDisplay.find('pre').on('click', function () {
                 showImpls = !showImpls;
                 highlightBox();
             });
+            
+            implsDisplay.append(implsScrollable);
+            
             usedX = 0;
             usedY = 0;
             for(i in impls) {
@@ -632,7 +682,7 @@ var specsExercise = (function () {
                 canvas.add(implGroup);
                 
                 var newPre = $('<pre class="prettyprint objSpan implSpan hidden" data-id="'+impls[i].getName()+'">'+impls[i].getSpec()+'</pre>');
-                implsDisplay.append(newPre);
+                implsScrollable.append(newPre);
                 newPre.css('border-color', implCircle.fill.replace(',1)',',0.3)'));
             }
             
@@ -646,7 +696,7 @@ var specsExercise = (function () {
             });
             
             canvas.on('mouse:move', function(evt) {
-                var objsOver = getObjsOver(evt.e.offsetX, evt.e.offsetY);
+                var objsOver = getObjsOver(evt.e.offsetX || evt.e.layerX, evt.e.offsetY || evt.e.layerY);
                 var scrollTop = 1000;
                 
                 //highlights each specification currently moused over
@@ -654,7 +704,7 @@ var specsExercise = (function () {
                     if(objsOver.indexOf($(this).attr('data-id')) >= 0) {
                         if($(this).position().top < scrollTop)
                             scrollTop = $(this).position().top;
-                        $(this).css('background-color', $(this).css('border-color'));
+                        $(this).css('background-color', $(this).css('border-left-color'));
                     }
                     else
                         $(this).css('background-color', '#f5f5f5');
@@ -669,8 +719,8 @@ var specsExercise = (function () {
                     }
                 });
                 
-                if(scrollTop !== 0 & scrollTop !== 1000)
-                    specsDisplay.scrollTop(scrollTop);
+                if(scrollTop !== 1000)
+                    specsScrollable.scrollTop(scrollTop - specsScrollable.position().top);
             });
             
             //disable right click on canvas
@@ -757,9 +807,9 @@ var specsExercise = (function () {
                     newDiv.addClass('active');
                 }
                 tabContent.append(newDiv);
-                var newView = View(j, newDiv, model, controller, dynamicChecking);
+                var newView = View(j, newDiv, model, controller, dynamicChecking, j==='0', j===String(bigJSON.length-1));
             }
-            navTabs.append('<li class="pull-right help">Help <i class="icon-question-sign"></i></li>');
+            navTabs.append('<li class="pull-right help clickable">Help <i class="icon-question-sign"></i></li>');
             navTabs.find('.help').on('click', function () {
                 $('.specModal').modal('show');
             });
@@ -774,10 +824,15 @@ var specsExercise = (function () {
             Go to next question on 'N'
             */
             $(document).on('keyup', function(evt) {
-                if(evt.which === 78) {
+                var whichKey = evt.which;
+                if(whichKey === 78 | whichKey === 80) {
                     var nextActive = parseInt($('.nav-tabs .active').text().split(' ')[1]);
+                    if(whichKey === 80)
+                        nextActive = nextActive - 2;
                     if(nextActive > bigJSON.length-1)
                         nextActive = 0;
+                    if(nextActive < 0)
+                        nextActive = bigJSON.length-1;
                     $('.nav-tabs .active').removeClass('active');
                     $('.tab-content .active').removeClass('active');
                     $('#showQuestion'+nextActive).addClass('active');

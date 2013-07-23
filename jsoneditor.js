@@ -150,7 +150,7 @@ $(document).ready(function() {
                     jsonThing['specs'][name]['intersects'] = [];
                 }
                 
-                jsonThing['specs'][name]['text'] = $(this).find('textarea').val();
+                jsonThing['specs'][name]['text'] = $(this).find('textarea').html();
                 jsonThing['specs'][name]['color'] = randomColor(0.3);
             }
         });
@@ -160,7 +160,7 @@ $(document).ready(function() {
             var name = $(this).find('.name').val();
             if(name !== "") {
                 jsonThing['impls'][name] = {};
-                jsonThing['impls'][name]['text'] = $(this).find('textarea').val();
+                jsonThing['impls'][name]['text'] = $(this).find('textarea').html();
                 jsonThing['impls'][name]['color'] = randomColor(1);
             }
         });
