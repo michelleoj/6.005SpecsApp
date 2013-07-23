@@ -39,7 +39,7 @@ chart.highcharts({
                 select: function(event) {
                     canvas.clear();
                     canvas.loadFromJSON(this.image);
-                    selected[currentTab] = this.string;
+                    selected[currentTab] = this.id;
                 }
             }
         }
@@ -65,29 +65,29 @@ function getColor(wrongness) {
 
 function showAnswers(qNum) {
     var studentAnswers = allStudentAnswers[qNum];
-    //translate answers into data for graph
-    var dataAnswers = [];
-    var index = 0;
     canvas.clear();
     for(s in studentAnswers) {
-        dataAnswers.push({});
-        dataAnswers[index]['y'] = studentAnswers[s]['y'];
-        //THIS IS A JSON STRING FOR FABRIC.CANVAS TO LOAD
-        dataAnswers[index]['image'] = studentAnswers[s]['image'];
-        dataAnswers[index]['color'] = getColor(parseInt(studentAnswers[s]['wrongness']));
-        dataAnswers[index]['string'] = s;
-        if(studentAnswers[s]['correct'] & selected[qNum] === undefined)
+        var currentAnswer = studentAnswers[s];
+        if(currentAnswer.correct & selected[qNum] === undefined)
             selected[qNum] = s;
-        if(s === selected[qNum]) {
-            canvas.clear();
-            canvas.loadFromJSON(studentAnswers[s]['image']);
-            dataAnswers[index]['sliced'] = true;
-            dataAnswers[index]['selected'] = true;
+        if(chart.highcharts().get(s) === null) {
+            chart.highcharts().get('pie').addPoint({
+                y: currentAnswer.y,
+                id: s,
+                image: currentAnswer.image,
+                color: getColor(parseInt(currentAnswer.wrongness)),
+                sliced: s === selected[qNum],
+                selected: s=== selected[qNum]
+            });
         }
-        index++;
+        else {
+            if(currentAnswer.y !== chart.highcharts().get(s).y)
+                chart.highcharts().get(s).update(currentAnswer.y);
+        }
+        if(s === selected[qNum]) {
+            canvas.loadFromJSON(currentAnswer.image);
+        }
     }
-    //make pie chart
-    chart.highcharts().get('pie').setData(dataAnswers);
 }
 
 //recursive server call to update answers
@@ -96,7 +96,7 @@ function getAnswers() {
         allStudentAnswers = jQuery.parseJSON(response);
         showAnswers(currentTab);
         if(open)
-            setTimeout(getAnswers, 1000);
+            setTimeout(getAnswers, 5000);
     });
 }
 
@@ -107,6 +107,7 @@ $.ajax({url: serverURL, data: {want: 'load'}}).done(function(response) {
         $('.nav').append(newTab);
         newTab.on('click', function () {
             currentTab = parseInt($(this).attr('id'));
+            chart.highcharts().get('pie').setData([]);
             showAnswers(currentTab);
         });
         
