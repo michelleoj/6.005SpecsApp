@@ -88,9 +88,11 @@ $(document).ready(function() {
     function resetForm() {
         $('input').each(function() {
             $(this).val("");
+            $(this).attr('value', '');
         });
         $('textarea').each(function() {
             $(this).val("");
+            $(this).html('');
         });
     }
     
@@ -180,12 +182,35 @@ $(document).ready(function() {
         counterspec += 1; 
         var spec = $("<div style='margin-right: 20px; margin-bottom: 15px;' class='spec" + counterspec +  "'>\
                     <input class='name' style='width:104px; font-family: monospace' type='text' placeholder='Spec name...'>\
-                    <input class='intersects' style='width:104px; font-family: monospace' type='text' placeholder='Intersections'>\
-                    <input class='contains' style='width:104px; font-family: monospace' type='text' placeholder='Contains'><br>\
+                    <input class='intersects' style='width:104px; font-family: monospace' type='text' placeholder='Intersects...'>\
+                    <input class='contains' style='width:104px; font-family: monospace' type='text' placeholder='Contains...'><br>\
                     <textarea style='font-family: monospace; width: 350px' class='input-xlarge' rows='4' placeholder='Enter spec...'></textarea>\
                     <button data-spec='" +counterspec + "' class='dec btn btn-info' class='btn btn-primary'>Remove Spec</button></div>");
         spec.find("button").on('click', function() {
             decSpec($(this).attr("data-spec"));
+        });
+        spec.find('textarea').on('keyup', function() {
+            $(this).html($(this).val());
+        });
+        spec.find('textarea').on('keydown', function(e) {
+            if(e.which === 9) {
+                e.preventDefault();
+                
+                var start = $(this).get(0).selectionStart;
+                var end = $(this).get(0).selectionEnd;
+            
+                // set textarea value to: text before caret + tab + text after caret
+                $(this).val($(this).val().substring(0, start)
+                            + "     "
+                            + $(this).val().substring(end));
+            
+                // put caret at right position again
+                $(this).get(0).selectionStart = 
+                $(this).get(0).selectionEnd = start + 5;
+            }
+        });
+        spec.find('input').on('keyup', function() {
+            $(this).attr('value', $(this).val());
         });
         $(".specs").append(spec);
         
@@ -226,6 +251,29 @@ $(document).ready(function() {
                     '</div>');
         impl.find("button").on('click', function() {
            decImpl($(this).attr("data-impl")); 
+        });
+        impl.find('textarea').on('keyup', function() {
+            $(this).html($(this).val());
+        });
+        impl.find('input').on('keyup', function() {
+            $(this).attr('value', $(this).val());
+        });
+        impl.find('textarea').on('keydown', function(e) {
+            if(e.which === 9) {
+                e.preventDefault();
+                
+                var start = $(this).get(0).selectionStart;
+                var end = $(this).get(0).selectionEnd;
+            
+                // set textarea value to: text before caret + tab + text after caret
+                $(this).val($(this).val().substring(0, start)
+                            + "     "
+                            + $(this).val().substring(end));
+            
+                // put caret at right position again
+                $(this).get(0).selectionStart = 
+                $(this).get(0).selectionEnd = start + 5;
+            }
         });
         $(".impl").append(impl); 
         
@@ -288,6 +336,24 @@ $(document).ready(function() {
         
         $('input').on('keyup', function() {
             $(this).attr('value', $(this).val());
+        });
+        
+        $('textarea').on('keydown', function(e) {
+            if(e.which === 9) {
+                e.preventDefault();
+                
+                var start = $(this).get(0).selectionStart;
+                var end = $(this).get(0).selectionEnd;
+            
+                // set textarea value to: text before caret + tab + text after caret
+                $(this).val($(this).val().substring(0, start)
+                            + "     "
+                            + $(this).val().substring(end));
+            
+                // put caret at right position again
+                $(this).get(0).selectionStart = 
+                $(this).get(0).selectionEnd = start + 5;
+            }
         });
     }
     
@@ -382,4 +448,31 @@ $(document).ready(function() {
 });
 
 
-//I will format it into the MVC model. But today is not the da
+function saveTextAsFile()
+{
+	var textToWrite = "var questions = [\n"+$("#result").text()+"\n];";
+	var textFileAsBlob = new Blob([textToWrite], {type:'text/plain'});
+	var fileNameToSaveAs = "questions.js";
+
+	var downloadLink = document.createElement("a");
+	downloadLink.download = fileNameToSaveAs;
+	downloadLink.innerHTML = "Download File";
+	if (window.webkitURL != null)
+	{
+		// Chrome allows the link to be clicked programmatically.
+		downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
+		downloadLink.click();
+	}
+	else
+	{
+		// Firefox requires the user to actually click the link.
+		downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+		downloadLink.onclick = destroyClickedElement;
+		$('.container').append(downloadLink);
+	}
+}
+
+function destroyClickedElement(event)
+{
+	document.body.removeChild(event.target);
+}
