@@ -468,7 +468,7 @@ function saveTextAsFile()
 		// Firefox requires the user to actually click the link.
 		downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
 		downloadLink.onclick = destroyClickedElement;
-		document.body.appendChild(downloadLink);
+		$('.container').append(downloadLink);
 	}
 }
 
