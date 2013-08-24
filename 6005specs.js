@@ -896,6 +896,13 @@ function checkOverlap(spec1, spec2) {
 
 $(document).ready(function () {
     /*
+    A very strange fix for IE 10 compatibility
+    */
+    if(localStorage === undefined) {
+        var localStorage = {specsAppTouchEnabled: undefined, specAppLoadedOnce: undefined};
+        console.log(localStorage);
+    }
+    /*
     Loads description box on first load
     */
     function load(touchEnable, storeChoice) {
