@@ -898,9 +898,15 @@ $(document).ready(function () {
     /*
     A very strange fix for IE 10 compatibility
     */
-    if(localStorage === undefined) {
-        var localStorage = {specsAppTouchEnabled: undefined, specAppLoadedOnce: undefined};
-        console.log(localStorage);
+    if(localStorage === undefined & window.localStorage === undefined) {
+        specsExercise.setup($('.specs'));
+        
+        $(window).on('keyup', function(evt) {
+            if(evt.which === 13)
+                $('.specModal').modal('hide');
+        });
+        
+        return;
     }
     /*
     Loads description box on first load
